@@ -1,0 +1,6 @@
+{
+  "name": "Ephesians Outreach",
+  "description": "Streamlined evangelism tracking, mobile field data entry, offline sync, automated leader monitoring, and real-time ministry analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
