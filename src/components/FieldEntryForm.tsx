@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Building2,
@@ -21,6 +21,7 @@ import {
   Shield,
   Phone,
   FileUp,
+  Target,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -31,6 +32,7 @@ import {
   AttachmentInfo,
   UserProfile,
   LeaderAttendance,
+  FieldObjective,
 } from '../types';
 import {
   saveOutreach,
@@ -38,11 +40,14 @@ import {
   addCouncil,
   getIsOnline,
   getLeadersPool,
+  getBacentasForCouncil,
+  addBacentaToCouncil,
 } from '../services/storage';
+import { getFieldObjectives, subscribeToObjectives } from '../services/realtime';
 import { LeaderTrackingModal } from './LeaderTrackingModal';
 
 interface Props {
-  currentUser: UserProfile;
+  currentUser: UserProfile | null;
   onSwitchAccount: () => void;
   onEntrySaved: (entry: OutreachEntry) => void;
 }
@@ -68,13 +73,39 @@ export const FieldEntryForm: React.FC<Props> = ({
 
   // Form State
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [councilName, setCouncilName] = useState(
-    currentUser.council.includes('Executive') ? availableCouncils[0] : currentUser.council
-  );
+  const [councilName, setCouncilName] = useState(() => {
+    if (!currentUser) return availableCouncils[0] || 'Ephesians 1';
+    if (currentUser.council.includes('Executive') || currentUser.council.includes('All')) {
+      return availableCouncils[0] || 'Ephesians 1';
+    }
+    return currentUser.council;
+  });
   const [newCouncilInput, setNewCouncilInput] = useState('');
   const [showAddCouncil, setShowAddCouncil] = useState(false);
 
   const [outreachLevel, setOutreachLevel] = useState<OutreachLevel>('Bacentas');
+  const availableBacentas = getBacentasForCouncil(councilName);
+  const [bacentaName, setBacentaName] = useState<string>(() => {
+    return (currentUser && currentUser.bacenta) || (availableBacentas[0] || 'Bacenta Alpha (Praise)');
+  });
+  const [showAddBacenta, setShowAddBacenta] = useState(false);
+  const [newBacentaInput, setNewBacentaInput] = useState('');
+
+  const [objectives, setObjectives] = useState<FieldObjective[]>(getFieldObjectives);
+
+  useEffect(() => {
+    const unsub = subscribeToObjectives((updated) => {
+      setObjectives(updated);
+    });
+    return unsub;
+  }, []);
+
+  const relevantObjectives = objectives.filter(
+    (o) =>
+      o.targetCouncil === 'All Councils' ||
+      o.targetCouncil === councilName ||
+      (currentUser && o.targetCouncil === currentUser.council)
+  );
   const [outreachType, setOutreachType] = useState<OutreachType>('Door to Door / 1 v 1');
   const [otherTypeDetail, setOtherTypeDetail] = useState('');
 
@@ -226,6 +257,7 @@ export const FieldEntryForm: React.FC<Props> = ({
       id: `outreach_${Date.now()}`,
       date,
       councilName,
+      bacentaName: outreachLevel === 'Bacentas' ? bacentaName : undefined,
       outreachLevel,
       outreachType,
       otherTypeDetail: outreachType === 'Other' ? otherTypeDetail : undefined,
@@ -237,10 +269,10 @@ export const FieldEntryForm: React.FC<Props> = ({
       attachments,
       notes: notes.trim() || undefined,
       submittedBy: {
-        id: currentUser.id,
-        name: currentUser.name,
-        email: currentUser.email,
-        role: currentUser.role,
+        id: currentUser ? currentUser.id : `guest_${Date.now()}`,
+        name: currentUser ? currentUser.name : 'Field Outreach Worker',
+        email: currentUser ? currentUser.email : 'field@ephesiansoutreach.org',
+        role: currentUser ? currentUser.role : 'leader',
       },
       syncStatus: isOnline ? 'synced' : 'pending',
       createdAt: new Date().toISOString(),
@@ -302,22 +334,42 @@ export const FieldEntryForm: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Account line matching prompt: "dogbatseyfredrick@gmail.com Switch account admin" */}
+          {/* Account line: Shows user if logged in, or Public Outreach Uploader mode if not */}
           <div className="mt-5 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-300">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="font-medium text-slate-200">{currentUser.email}</span>
-              <button
-                type="button"
-                onClick={onSwitchAccount}
-                className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2 ml-1"
-              >
-                Switch account ({currentUser.role})
-              </button>
-            </div>
-            <span className="text-slate-400">
-              Role: <strong className="text-slate-200 capitalize">{currentUser.roleTitle}</strong>
-            </span>
+            {currentUser ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="font-medium text-slate-200">{currentUser.email}</span>
+                  <button
+                    type="button"
+                    onClick={onSwitchAccount}
+                    className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2 ml-1"
+                  >
+                    Switch account ({currentUser.role})
+                  </button>
+                </div>
+                <span className="text-slate-400">
+                  Role: <strong className="text-slate-200 capitalize">{currentUser.roleTitle}</strong>
+                </span>
+              </>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-slate-200 font-medium">Public Outreach Details Uploads</span>
+                  <span className="text-slate-500 text-[11px]">(Menus restricted until login)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={onSwitchAccount}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm self-start sm:self-auto"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Leadership Login / Select Position</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="mt-3 p-3 bg-slate-950/80 rounded-xl border border-slate-800/80 text-[11px] text-slate-400 leading-relaxed">
@@ -336,6 +388,41 @@ export const FieldEntryForm: React.FC<Props> = ({
           <div className="text-xs sm:text-sm">
             <strong className="block font-semibold text-emerald-300">Report Successfully Submitted!</strong>
             <p className="mt-0.5 text-emerald-200/90">{successMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Active Objectives Banner for Field Leaders */}
+      {relevantObjectives.length > 0 && (
+        <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-700/80 shadow-md space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-amber-400" />
+              <h3 className="text-xs sm:text-sm font-bold text-white">
+                Active Field Directive from Overseer
+              </h3>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 uppercase tracking-wider">
+              {relevantObjectives[0].priority} Priority
+            </span>
+          </div>
+
+          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-white">{relevantObjectives[0].title}</span>
+              <span className="text-emerald-400 font-bold font-mono">
+                Goal: {relevantObjectives[0].targetSouls} souls
+              </span>
+            </div>
+            {relevantObjectives[0].instructions && (
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {relevantObjectives[0].instructions}
+              </p>
+            )}
+            <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400 border-t border-slate-900">
+              <span>Council: <strong className="text-slate-200">{relevantObjectives[0].targetCouncil}</strong></span>
+              <span>Deadline: <strong className="text-slate-200">{relevantObjectives[0].deadline}</strong></span>
+            </div>
           </div>
         </div>
       )}
@@ -475,6 +562,71 @@ export const FieldEntryForm: React.FC<Props> = ({
             })}
           </div>
         </div>
+
+        {/* FIELD 3.5: BACENTA SELECTION (When Outreach Level is Bacentas) */}
+        {outreachLevel === 'Bacentas' && (
+          <div className="bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <label htmlFor="bacenta-select" className="block text-sm font-bold text-slate-100">
+                Subordinate Bacenta <span className="text-rose-400">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowAddBacenta(!showAddBacenta)}
+                className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+              >
+                {showAddBacenta ? 'Select Existing' : '+ Add New Bacenta'}
+              </button>
+            </div>
+
+            {showAddBacenta ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder={`New bacenta for ${councilName}...`}
+                  value={newBacentaInput}
+                  onChange={(e) => setNewBacentaInput(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newBacentaInput.trim()) {
+                      addBacentaToCouncil(councilName, newBacentaInput.trim());
+                      setBacentaName(newBacentaInput.trim());
+                      setNewBacentaInput('');
+                      setShowAddBacenta(false);
+                    }
+                  }}
+                  className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500 transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Building2 className="w-4 h-4 absolute left-3.5 top-3.5 text-emerald-400 pointer-events-none" />
+                <select
+                  id="bacenta-select"
+                  required
+                  value={bacentaName}
+                  onChange={(e) => setBacentaName(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none cursor-pointer"
+                >
+                  {getBacentasForCouncil(councilName).map((b) => (
+                    <option key={b} value={b} className="bg-slate-900 text-slate-100 font-medium">
+                      {b}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 absolute right-3.5 top-3.5 text-slate-400 pointer-events-none" />
+              </div>
+            )}
+            <p className="text-xs text-slate-400">
+              Each council represents a Governorship ({councilName}), and underneath are its assigned Bacentas.
+            </p>
+          </div>
+        )}
 
         {/* FIELD 4: OUTREACH TYPE */}
         <div className="bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-3">

@@ -16,8 +16,17 @@ import {
   Shield,
   Eye,
 } from 'lucide-react';
-import { OutreachEntry, UserProfile, OutreachLevel, OutreachType } from '../types';
+import {
+  OutreachEntry,
+  UserProfile,
+  OutreachLevel,
+  OutreachType,
+  isGeneralOverseer,
+  isCouncilOverseer,
+  isGovernor,
+} from '../types';
 import { deleteOutreach, exportOutreachesToCSV, getCouncils } from '../services/storage';
+import { approveOutreach } from '../services/realtime';
 
 interface Props {
   outreaches: OutreachEntry[];
@@ -31,12 +40,31 @@ export const OperationsTable: React.FC<Props> = ({
   currentUser,
   onOpenReportPrint,
 }) => {
+  const isGen = isGeneralOverseer(currentUser.role);
+  const isCouncil = isCouncilOverseer(currentUser.role);
+  const isGov = isGovernor(currentUser.role);
+  const userCouncil = currentUser.council && !currentUser.council.includes('All') ? currentUser.council : 'Ephesians 1';
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCouncil, setSelectedCouncil] = useState('all');
+  const [selectedCouncil, setSelectedCouncil] = useState<string>(isCouncil ? userCouncil : 'all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const effectiveCouncil = isCouncil ? userCouncil : selectedCouncil;
+
+  const handleApprove = async (row: OutreachEntry) => {
+    try {
+      setApprovingId(row.id);
+      await approveOutreach(row.id, currentUser);
+    } catch (err) {
+      console.error('Approval failed:', err);
+    } finally {
+      setApprovingId(null);
+    }
+  };
 
   const councilsList = useMemo(() => {
     return Array.from(new Set([...getCouncils(), ...outreaches.map((o) => o.councilName)]));
@@ -44,7 +72,7 @@ export const OperationsTable: React.FC<Props> = ({
 
   const filteredEntries = useMemo(() => {
     return outreaches.filter((item) => {
-      if (selectedCouncil !== 'all' && item.councilName !== selectedCouncil) return false;
+      if (effectiveCouncil !== 'all' && item.councilName !== effectiveCouncil) return false;
       if (selectedLevel !== 'all' && item.outreachLevel !== selectedLevel) return false;
       if (selectedType !== 'all' && item.outreachType !== selectedType) return false;
 
@@ -62,23 +90,23 @@ export const OperationsTable: React.FC<Props> = ({
 
       return true;
     });
-  }, [outreaches, selectedCouncil, selectedLevel, selectedType, searchTerm]);
+  }, [outreaches, effectiveCouncil, selectedLevel, selectedType, searchTerm]);
 
   const handleDownloadCSV = () => {
-    const csv = exportOutreachesToCSV();
+    const csv = exportOutreachesToCSV(filteredEntries);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `ephesians_field_operations_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `ephesians_field_operations_${effectiveCouncil}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const handleDelete = (id: string) => {
-    if (currentUser.role !== 'admin') {
-      alert('RBAC Restriction: Only Overseer / Admin accounts can delete operation records.');
+    if (currentUser.role !== 'admin' && currentUser.role !== 'general_overseer') {
+      alert('RBAC Restriction: Only General Overseer / Lead Admin accounts can delete operation records.');
       return;
     }
     deleteOutreach(id);
@@ -91,11 +119,26 @@ export const OperationsTable: React.FC<Props> = ({
       <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-extrabold text-white tracking-tight">
-              Field Operations Master Log
-            </h2>
-            <p className="text-xs text-slate-400">
-              Audit trail of all evangelism reports, leader turnouts, and convert rosters
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-extrabold text-white tracking-tight">
+                Field Operations Master Log
+              </h2>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                isGen
+                  ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                  : isCouncil
+                  ? 'bg-indigo-950 text-indigo-400 border border-indigo-800'
+                  : 'bg-blue-950 text-blue-400 border border-blue-800'
+              }`}>
+                {isGen ? 'All 5 Councils Oversight' : isCouncil ? `${userCouncil} Oversight Only` : `${currentUser.governorship || 'Governorship'} Oversight Only`}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {isGen
+                ? 'Full apostolic oversight across all 5 Councils, Governorships, and Bacentas'
+                : isCouncil
+                ? `Restricted to records under ${userCouncil} pastoral oversight only`
+                : `Restricted to records under ${currentUser.governorship || 'your Governorship'} oversight only`}
             </p>
           </div>
 
@@ -105,7 +148,7 @@ export const OperationsTable: React.FC<Props> = ({
               className="px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5 text-slate-400" />
-              <span>CSV</span>
+              <span>CSV ({filteredEntries.length})</span>
             </button>
             <button
               onClick={onOpenReportPrint}
@@ -130,18 +173,31 @@ export const OperationsTable: React.FC<Props> = ({
             />
           </div>
 
-          <select
-            value={selectedCouncil}
-            onChange={(e) => setSelectedCouncil(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 font-medium"
-          >
-            <option value="all">All Councils</option>
-            {councilsList.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          {/* Council Filter: Locked for Council Overseer and Governor */}
+          {isCouncil ? (
+            <div className="px-3 py-2 bg-slate-950 border border-indigo-900/60 rounded-xl text-xs text-indigo-300 font-semibold flex items-center justify-between">
+              <span>{userCouncil}</span>
+              <span className="text-[10px] text-slate-500 uppercase font-bold">Locked Scope</span>
+            </div>
+          ) : isGov ? (
+            <div className="px-3 py-2 bg-slate-950 border border-blue-900/60 rounded-xl text-xs text-blue-300 font-semibold flex items-center justify-between">
+              <span>{currentUser.governorship || userCouncil}</span>
+              <span className="text-[10px] text-slate-500 uppercase font-bold">Locked Scope</span>
+            </div>
+          ) : (
+            <select
+              value={selectedCouncil}
+              onChange={(e) => setSelectedCouncil(e.target.value)}
+              className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 font-medium"
+            >
+              <option value="all">All 5 Councils</option>
+              {councilsList.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          )}
 
           <select
             value={selectedLevel}
@@ -174,7 +230,9 @@ export const OperationsTable: React.FC<Props> = ({
       <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-xs overflow-hidden">
         {filteredEntries.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-xs">
-            No outreach operations found matching the filter criteria.
+            {outreaches.length === 0
+              ? 'No outreach operations recorded yet. Submit your first field report to populate the master ledger.'
+              : 'No outreach operations found matching the filter criteria.'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -188,6 +246,7 @@ export const OperationsTable: React.FC<Props> = ({
                   <th className="py-3 px-4 text-center">Leaders</th>
                   <th className="py-3 px-4 text-center">Souls</th>
                   <th className="py-3 px-4 text-center">Converts</th>
+                  <th className="py-3 px-4 text-center">Approval</th>
                   <th className="py-3 px-4 text-center">Sync</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -195,6 +254,8 @@ export const OperationsTable: React.FC<Props> = ({
               <tbody className="divide-y divide-slate-800 font-medium">
                 {filteredEntries.map((row) => {
                   const isExpanded = expandedId === row.id;
+                  const isApproved = row.approvalStatus === 'approved';
+
                   return (
                     <React.Fragment key={row.id}>
                       <tr className={`hover:bg-slate-800/50 transition-colors ${isExpanded ? 'bg-slate-800/30' : ''}`}>
@@ -235,6 +296,45 @@ export const OperationsTable: React.FC<Props> = ({
                         </td>
                         <td className="py-3 px-4 text-center tabular-nums text-slate-300">
                           {row.converts?.length || 0}
+                        </td>
+                        {/* Approval Status Badge & Admin Action */}
+                        <td className="py-3 px-4 text-center whitespace-nowrap">
+                          {isApproved ? (
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-semibold"
+                              title={
+                                row.approvedBy
+                                  ? `Approved by ${row.approvedBy.name} on ${new Date(
+                                      row.approvedBy.approvedAt
+                                    ).toLocaleDateString()}`
+                                  : 'Approved by Administration'
+                              }
+                            >
+                              <CheckCircle className="w-3 h-3 text-emerald-400" />
+                              <span>Approved</span>
+                            </span>
+                          ) : (
+                            <div className="flex items-center justify-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 text-[10px] bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded font-semibold">
+                                <Clock className="w-3 h-3 text-amber-400" />
+                                <span>Pending</span>
+                              </span>
+                              {currentUser.role === 'admin' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApprove(row);
+                                  }}
+                                  disabled={approvingId === row.id}
+                                  className="px-2 py-0.5 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold transition-colors disabled:opacity-50 flex items-center gap-1 shadow-xs"
+                                  title="Approve outreach and broadcast real-time alert to submitting leader"
+                                >
+                                  <UserCheck className="w-3 h-3" />
+                                  <span>{approvingId === row.id ? 'Approving...' : 'Approve'}</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </td>
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           {row.syncStatus === 'synced' ? (
@@ -278,7 +378,7 @@ export const OperationsTable: React.FC<Props> = ({
                       {/* Expandable Details Row */}
                       {isExpanded && (
                         <tr className="bg-slate-950/60 border-b border-slate-800">
-                          <td colSpan={9} className="p-4 sm:p-6 space-y-4">
+                          <td colSpan={10} className="p-4 sm:p-6 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               {/* Submitter & Testimonies */}
                               <div className="space-y-2">

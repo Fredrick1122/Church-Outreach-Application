@@ -1,12 +1,13 @@
-import React from 'react';
-import { X, Printer, Download, Sparkles, Building2, CheckCircle2 } from 'lucide-react';
-import { OutreachEntry, UserProfile } from '../types';
+import React, { useState } from 'react';
+import { X, Printer, Download, Sparkles, Building2, CheckCircle2, FileDown } from 'lucide-react';
+import { OutreachEntry, UserProfile, OutreachLevel, OutreachType, isCouncilOverseer } from '../types';
+import { generateAnalyticsPDF } from '../services/pdfExport';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   outreaches: OutreachEntry[];
-  currentUser: UserProfile;
+  currentUser: UserProfile | null;
 }
 
 export const PrintableReportModal: React.FC<Props> = ({
@@ -20,9 +21,111 @@ export const PrintableReportModal: React.FC<Props> = ({
   const totalSouls = outreaches.reduce((acc, curr) => acc + curr.soulsWonCount, 0);
   const totalLeaders = outreaches.reduce((acc, curr) => acc + curr.leadersPresentCount, 0);
   const totalEvents = outreaches.length;
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = () => {
+    try {
+      setIsExportingPDF(true);
+      // Timeline Trend
+      const groupedTimeline = new Map<string, number>();
+      [...outreaches]
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .forEach((o) => {
+          groupedTimeline.set(o.date, (groupedTimeline.get(o.date) || 0) + o.soulsWonCount);
+        });
+      const timelineData = Array.from(groupedTimeline.entries()).map(([date, souls]) => ({ date, souls }));
+
+      // Types
+      const typesMap: Record<OutreachType, { souls: number; count: number }> = {
+        'Door to Door / 1 v 1': { souls: 0, count: 0 },
+        'Busstop': { souls: 0, count: 0 },
+        'Street Invasion / Stomp the Yard': { souls: 0, count: 0 },
+        'Crusade': { souls: 0, count: 0 },
+        'Dance Outreach': { souls: 0, count: 0 },
+        'Other': { souls: 0, count: 0 },
+      };
+      outreaches.forEach((o) => {
+        const t = o.outreachType as OutreachType;
+        if (typesMap[t]) {
+          typesMap[t].souls += o.soulsWonCount;
+          typesMap[t].count += 1;
+        }
+      });
+      const typeMetrics = Object.entries(typesMap).map(([name, d]) => ({
+        name,
+        souls: d.souls,
+        count: d.count,
+      }));
+
+      // Council Leaderboard
+      const councilMap = new Map<string, { council: string; souls: number; leaders: number; count: number }>();
+      outreaches.forEach((o) => {
+        const existing = councilMap.get(o.councilName) || {
+          council: o.councilName,
+          souls: 0,
+          leaders: 0,
+          count: 0,
+        };
+        existing.souls += o.soulsWonCount;
+        existing.leaders += o.leadersPresentCount;
+        existing.count += 1;
+        councilMap.set(o.councilName, existing);
+      });
+      const councilLeaderboard = Array.from(councilMap.values()).sort((a, b) => b.souls - a.souls);
+
+      // Levels
+      const levelBreakdown: Record<OutreachLevel, number> = {
+        Bacentas: 0,
+        Governorships: 0,
+        Councils: 0,
+        Overseership: 0,
+      };
+      outreaches.forEach((o) => {
+        if (levelBreakdown[o.outreachLevel] !== undefined) {
+          levelBreakdown[o.outreachLevel] += o.soulsWonCount;
+        }
+      });
+
+      const allConverts = outreaches.flatMap((o) => o.converts || []);
+      const uncontacted = allConverts.filter((c) => c.followUpStatus === 'Uncontacted').length;
+
+      generateAnalyticsPDF({
+        currentUser: currentUser || {
+          id: 'user_public',
+          name: 'Executive Overseer',
+          email: 'admin@ephesiansoutreach.org',
+          password: '',
+          role: 'admin',
+          roleTitle: 'General Overseer Operations',
+          council: 'All Councils',
+          avatarInitials: 'EO',
+          avatarColor: 'bg-emerald-600',
+        },
+        filters: {
+          dateFilter: 'all',
+          councilFilter: currentUser && isCouncilOverseer(currentUser.role) ? (currentUser.council || 'Ephesians 1') : 'all',
+          levelFilter: 'all',
+        },
+        kpis: {
+          totalSouls,
+          totalOutreaches: totalEvents,
+          totalLeadersEngaged: totalLeaders,
+          avgSoulsPerOutreach: totalEvents > 0 ? (totalSouls / totalEvents).toFixed(1) : '0',
+          uncontactedConvertsCount: uncontacted,
+        },
+        timelineData,
+        typeMetrics,
+        councilLeaderboard,
+        levelBreakdown,
+        filteredData: outreaches,
+      });
+    } finally {
+      setIsExportingPDF(false);
+    }
   };
 
   return (
@@ -38,11 +141,20 @@ export const PrintableReportModal: React.FC<Props> = ({
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={handleDownloadPDF}
+              disabled={isExportingPDF}
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
+              title="Download compiled PDF document with charts"
+            >
+              <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{isExportingPDF ? 'Generating...' : 'Download PDF'}</span>
+            </button>
+            <button
               onClick={handlePrint}
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-500 transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save PDF</span>
+              <span>Print Browser</span>
             </button>
             <button
               onClick={onClose}
@@ -73,10 +185,10 @@ export const PrintableReportModal: React.FC<Props> = ({
                 <strong className="text-slate-300 print:text-slate-900">Date Generated:</strong> {new Date().toLocaleDateString()}
               </p>
               <p>
-                <strong className="text-slate-300 print:text-slate-900">Overseer:</strong> {currentUser.name}
+                <strong className="text-slate-300 print:text-slate-900">Overseer:</strong> {currentUser ? currentUser.name : 'Public Executive View'}
               </p>
               <p>
-                <strong className="text-slate-300 print:text-slate-900">Account:</strong> {currentUser.email}
+                <strong className="text-slate-300 print:text-slate-900">Account:</strong> {currentUser ? currentUser.email : 'Public Session'}
               </p>
               <p>
                 <strong className="text-slate-300 print:text-slate-900">Status:</strong> Certified & Audited
@@ -130,23 +242,31 @@ export const PrintableReportModal: React.FC<Props> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 print:divide-slate-100">
-                {outreaches.map((row) => (
-                  <tr key={row.id}>
-                    <td className="py-2 px-3 font-mono text-slate-300 print:text-slate-800">{row.date}</td>
-                    <td className="py-2 px-3 font-semibold text-white print:text-slate-900">{row.councilName}</td>
-                    <td className="py-2 px-3 text-slate-400 print:text-slate-600">{row.outreachLevel}</td>
-                    <td className="py-2 px-3 text-slate-300 print:text-slate-700">{row.outreachType}</td>
-                    <td className="py-2 px-3 text-right font-medium text-slate-300 print:text-slate-800 tabular-nums">
-                      {row.leadersPresentCount}
-                    </td>
-                    <td className="py-2 px-3 text-right font-bold text-emerald-400 print:text-slate-900 tabular-nums">
-                      {row.soulsWonCount}
-                    </td>
-                    <td className="py-2 px-3 text-slate-400 print:text-slate-500 truncate max-w-[140px]">
-                      {row.locationArea || '—'}
+                {outreaches.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-slate-500 italic text-xs">
+                      No outreach activities recorded in the ledger yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  outreaches.map((row) => (
+                    <tr key={row.id}>
+                      <td className="py-2 px-3 font-mono text-slate-300 print:text-slate-800">{row.date}</td>
+                      <td className="py-2 px-3 font-semibold text-white print:text-slate-900">{row.councilName}</td>
+                      <td className="py-2 px-3 text-slate-400 print:text-slate-600">{row.outreachLevel}</td>
+                      <td className="py-2 px-3 text-slate-300 print:text-slate-700">{row.outreachType}</td>
+                      <td className="py-2 px-3 text-right font-medium text-slate-300 print:text-slate-800 tabular-nums">
+                        {row.leadersPresentCount}
+                      </td>
+                      <td className="py-2 px-3 text-right font-bold text-emerald-400 print:text-slate-900 tabular-nums">
+                        {row.soulsWonCount}
+                      </td>
+                      <td className="py-2 px-3 text-slate-400 print:text-slate-500 truncate max-w-[140px]">
+                        {row.locationArea || '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

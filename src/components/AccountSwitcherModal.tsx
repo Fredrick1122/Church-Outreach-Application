@@ -107,13 +107,13 @@ export const AccountSwitcherModal: React.FC<Props> = ({
             </div>
             <ul className="space-y-1.5 text-slate-300 pl-5 list-disc">
               <li>
-                <strong className="text-white">Admin (dogbatseyfredrick@gmail.com):</strong> Full executive rights, cross-council analytics, export tools, threshold alert configuration, and record deletion.
+                <strong className="text-white">Admin (dogbatseyfredrick@gmail.com):</strong> Sole access to all executive dashboards, operations ledgers, converts CRM, export tools, system configuration, and cloud storage space.
               </li>
               <li>
-                <strong className="text-white">Governor:</strong> Oversees all Bacentas within their designated Council. Views council-specific charts and leader rosters.
+                <strong className="text-white">Governor:</strong> Field operations lead. Access limited to Field Data Entry for reporting evangelism activities.
               </li>
               <li>
-                <strong className="text-white">Bacenta Leader:</strong> Focused field logger. Enters instant outreach stats & converts for their specific field assignment.
+                <strong className="text-white">Bacenta Leader:</strong> Field worker. Access limited to Field Data Entry for entering souls and converts.
               </li>
             </ul>
           </div>

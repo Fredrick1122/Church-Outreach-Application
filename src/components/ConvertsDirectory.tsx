@@ -13,7 +13,7 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react';
-import { OutreachEntry, ConvertRecord, UserProfile } from '../types';
+import { OutreachEntry, ConvertRecord, UserProfile, isGeneralOverseer, isCouncilOverseer, isGovernor } from '../types';
 import { saveOutreach, getOutreaches } from '../services/storage';
 
 interface Props {
@@ -21,7 +21,12 @@ interface Props {
   currentUser: UserProfile;
 }
 
-export const ConvertsDirectory: React.FC<Props> = ({ outreaches }) => {
+export const ConvertsDirectory: React.FC<Props> = ({ outreaches, currentUser }) => {
+  const isGen = isGeneralOverseer(currentUser.role);
+  const isCouncil = isCouncilOverseer(currentUser.role);
+  const isGov = isGovernor(currentUser.role);
+  const userCouncil = currentUser.council && !currentUser.council.includes('All') ? currentUser.council : 'Ephesians 1';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [decisionFilter, setDecisionFilter] = useState<string>('all');
@@ -145,12 +150,22 @@ export const ConvertsDirectory: React.FC<Props> = ({ outreaches }) => {
             <h2 className="text-xl font-extrabold text-white tracking-tight">
               Converts Follow-Up Directory
             </h2>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
-              Harvest CRM
+            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${
+              isGen
+                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                : isCouncil
+                ? 'bg-indigo-950 text-indigo-400 border border-indigo-800'
+                : 'bg-blue-950 text-blue-400 border border-blue-800'
+            }`}>
+              {isGen ? 'All 5 Councils Oversight' : isCouncil ? `${userCouncil} Oversight Only` : `${currentUser.governorship || 'Governorship'} Oversight Only`}
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Tracking decisions, personal contact details, and discipleship bacenta integration
+            {isGen
+              ? 'Tracking decisions, personal contact details, and discipleship integration across all 5 Councils'
+              : isCouncil
+              ? `Tracking discipleship integration under ${userCouncil} pastoral oversight only`
+              : `Tracking discipleship integration under ${currentUser.governorship || 'Governorship'} oversight only`}
           </p>
         </div>
 
@@ -239,7 +254,9 @@ export const ConvertsDirectory: React.FC<Props> = ({ outreaches }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {filteredConverts.length === 0 ? (
           <div className="col-span-full p-12 text-center text-slate-400 text-xs bg-slate-900 rounded-2xl border border-slate-800">
-            No converts found in this view.
+            {flattenedConverts.length === 0
+              ? 'No converts registered yet. When field evangelists record converts or attach rosters, they will appear here for discipleship follow-up.'
+              : 'No converts found matching the current search filters.'}
           </div>
         ) : (
           filteredConverts.map(({ convert, outreachId, councilName, outreachDate }) => (
