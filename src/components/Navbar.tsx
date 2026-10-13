@@ -10,6 +10,8 @@ import {
   Bell,
   LogOut,
   LogIn,
+  Sparkles,
+  UserPlus,
 } from 'lucide-react';
 import { UserProfile, isGeneralOverseer, isCouncilOverseer, isGovernor } from '../types';
 
@@ -24,6 +26,8 @@ interface Props {
   pendingSyncCount: number;
   unreadNotificationsCount?: number;
   onOpenNotifications?: () => void;
+  onOpenScriptureMotivation?: () => void;
+  onOpenRegisterModal?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -34,6 +38,8 @@ export const Navbar: React.FC<Props> = ({
   onLogout,
   unreadNotificationsCount = 0,
   onOpenNotifications,
+  onOpenScriptureMotivation,
+  onOpenRegisterModal,
 }) => {
   const isGenOverseer = currentUser ? isGeneralOverseer(currentUser.role) : false;
   const isCnlOverseer = currentUser ? isCouncilOverseer(currentUser.role) : false;
@@ -127,10 +133,36 @@ export const Navbar: React.FC<Props> = ({
             </nav>
           )}
 
-          {/* Zone 3: Login or Account Space & Role Indicator */}
+          {/* Zone 3: Actions, Motivation, Account Space & Login */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* AI Scripture Motivation Pop-up Trigger */}
+            {onOpenScriptureMotivation && (
+              <button
+                onClick={onOpenScriptureMotivation}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0"
+                title="AI Pop-up Scripture Motivation on Evangelism & Soul Winning"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+                <span className="hidden sm:inline">Scripture Word</span>
+                <span className="sm:hidden">Word</span>
+              </button>
+            )}
+
             {currentUser ? (
               <>
+                {/* Create Account Button for General Overseer, Overseer, Governor, Admin */}
+                {onOpenRegisterModal && (
+                  <button
+                    onClick={onOpenRegisterModal}
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 transition-colors text-xs font-semibold shrink-0"
+                    title="Create / Register Accounts for Others"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">+ Register Account</span>
+                    <span className="sm:hidden">+ User</span>
+                  </button>
+                )}
+
                 {/* Real-time Notification Center Bell */}
                 <button
                   onClick={onOpenNotifications}

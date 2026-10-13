@@ -51,6 +51,7 @@ interface Props {
   currentUser: UserProfile | null;
   onSwitchAccount: () => void;
   onEntrySaved: (entry: OutreachEntry) => void;
+  onOpenScriptureMotivation?: () => void;
 }
 
 const OUTREACH_LEVELS: OutreachLevel[] = ['Bacentas', 'Governorships', 'Overseership'];
@@ -68,6 +69,7 @@ export const FieldEntryForm: React.FC<Props> = ({
   currentUser,
   onSwitchAccount,
   onEntrySaved,
+  onOpenScriptureMotivation,
 }) => {
   const isOnline = getIsOnline();
   const availableCouncils = getCouncils();
@@ -87,7 +89,7 @@ export const FieldEntryForm: React.FC<Props> = ({
   const [outreachLevel, setOutreachLevel] = useState<OutreachLevel>('Bacentas');
   const availableBacentas = getBacentasForCouncil(councilName);
   const [bacentaName, setBacentaName] = useState<string>(() => {
-    return (currentUser && currentUser.bacenta) || (availableBacentas[0] || 'Bacenta Alpha (Praise)');
+    return (currentUser && currentUser.bacenta) || (availableBacentas[0] || '');
   });
   const [showAddBacenta, setShowAddBacenta] = useState(false);
   const [newBacentaInput, setNewBacentaInput] = useState('');
@@ -379,6 +381,32 @@ export const FieldEntryForm: React.FC<Props> = ({
           </div>
 
           <p className="mt-3 text-xs font-semibold text-rose-400">* Indicates required question</p>
+
+          {onOpenScriptureMotivation && (
+            <div className="mt-4 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-amber-950/40 via-emerald-950/30 to-slate-950 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700/60 flex items-center justify-center text-amber-300 shrink-0">
+                  <Sparkles className="w-4 h-4 animate-pulse" />
+                </div>
+                <div>
+                  <strong className="text-xs font-bold text-white block">
+                    Apostolic Scripture Motivation for Soul Winners
+                  </strong>
+                  <p className="text-[11px] text-emerald-300/80">
+                    Daily AI biblical exhortations on evangelism, harvest perseverance & shepherd care
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenScriptureMotivation}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs shrink-0 self-end sm:self-auto"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                <span>Scripture Word</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -580,29 +608,36 @@ export const FieldEntryForm: React.FC<Props> = ({
               </button>
             </div>
 
-            {showAddBacenta ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder={`New bacenta for ${councilName}...`}
-                  value={newBacentaInput}
-                  onChange={(e) => setNewBacentaInput(e.target.value)}
-                  className="flex-1 px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (newBacentaInput.trim()) {
-                      addBacentaToCouncil(councilName, newBacentaInput.trim());
-                      setBacentaName(newBacentaInput.trim());
-                      setNewBacentaInput('');
-                      setShowAddBacenta(false);
-                    }
-                  }}
-                  className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500 transition-colors"
-                >
-                  Add
-                </button>
+            {showAddBacenta || getBacentasForCouncil(councilName).length === 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder={`Enter bacenta name for ${councilName}...`}
+                    value={newBacentaInput}
+                    onChange={(e) => setNewBacentaInput(e.target.value)}
+                    className="flex-1 px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newBacentaInput.trim()) {
+                        addBacentaToCouncil(councilName, newBacentaInput.trim());
+                        setBacentaName(newBacentaInput.trim());
+                        setNewBacentaInput('');
+                        setShowAddBacenta(false);
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+                {getBacentasForCouncil(councilName).length === 0 && (
+                  <p className="text-[11px] text-amber-300/90">
+                    No bacentas registered under {councilName} yet. Type a bacenta name above and click "Add" to register it.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="relative">
@@ -614,6 +649,7 @@ export const FieldEntryForm: React.FC<Props> = ({
                   onChange={(e) => setBacentaName(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm font-semibold text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none cursor-pointer"
                 >
+                  <option value="">Select Bacenta...</option>
                   {getBacentasForCouncil(councilName).map((b) => (
                     <option key={b} value={b} className="bg-slate-900 text-slate-100 font-medium">
                       {b}

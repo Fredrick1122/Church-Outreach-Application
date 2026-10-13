@@ -34,28 +34,35 @@ let cachedNotifications: LiveNotification[] = (() => {
 let cachedObjectives: FieldObjective[] = (() => {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.OBJECTIVES);
-    return raw ? JSON.parse(raw) : [
-      {
-        id: 'obj_initial_1',
-        title: 'Operation Great Harvest: 50 Souls Blitz',
-        targetCouncil: 'All Councils',
-        targetSouls: 50,
-        targetLeaders: 12,
-        priority: 'high',
-        deadline: '2026-10-25',
-        instructions: 'Coordinate street invasion and 1v1 evangelism teams across public hubs and commuter terminals.',
-        createdBy: {
-          id: 'user_admin_1',
-          name: 'Fredrick Dogbatsey',
-          role: 'admin',
-        },
-        createdAt: new Date().toISOString(),
-        status: 'active',
-      },
-    ];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
   } catch {
-    return [];
+    // fallback
   }
+  return [
+    {
+      id: 'obj_great_harvest_5000',
+      title: 'Operation Great Harvest: 5,000 Souls Blitz',
+      targetCouncil: 'All Councils',
+      targetSouls: 5000,
+      targetLeaders: 50,
+      priority: 'urgent',
+      deadline: '2026-12-31',
+      instructions:
+        'Kingdom mobilization across all councils: Personal evangelism, street invasions, and convert discipleship follow-up to achieve the 5,000 souls harvest goal.',
+      createdBy: {
+        id: 'user_admin_1',
+        name: 'Fredrick Dogbatsey',
+        role: 'admin',
+      },
+      createdAt: new Date().toISOString(),
+      status: 'active',
+    },
+  ];
 })();
 
 // ========================
@@ -351,7 +358,7 @@ export async function approveOutreach(
 ): Promise<boolean> {
   // Update local storage representation
   try {
-    const raw = localStorage.getItem('ephesians_outreaches_v5');
+    const raw = localStorage.getItem('ephesians_outreaches_v8');
     if (raw) {
       const all: OutreachEntry[] = JSON.parse(raw);
       const idx = all.findIndex((o) => o.id === outreachId);
@@ -367,7 +374,7 @@ export async function approveOutreach(
           },
           updatedAt: new Date().toISOString(),
         };
-        localStorage.setItem('ephesians_outreaches_v5', JSON.stringify(all));
+        localStorage.setItem('ephesians_outreaches_v8', JSON.stringify(all));
       }
     }
   } catch (e) {

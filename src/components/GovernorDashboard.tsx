@@ -37,6 +37,7 @@ interface Props {
   currentUser: UserProfile;
   onOpenReportPrint?: () => void;
   onNavigateToForm?: () => void;
+  onOpenRegisterModal?: () => void;
 }
 
 export const GovernorDashboard: React.FC<Props> = ({
@@ -44,12 +45,13 @@ export const GovernorDashboard: React.FC<Props> = ({
   currentUser,
   onOpenReportPrint,
   onNavigateToForm,
+  onOpenRegisterModal,
 }) => {
   const council = currentUser.council || 'Ephesians 1';
   const governorship =
     currentUser.governorship ||
     getGovernorshipsForCouncil(council)[0] ||
-    'Governorship Alpha (Praise)';
+    `${council} Governorship`;
   const myBacentas = getBacentasForGovernorship(governorship);
 
   // Filters restricted strictly to this Governorship
@@ -196,6 +198,17 @@ export const GovernorDashboard: React.FC<Props> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
+            {onOpenRegisterModal && (
+              <button
+                onClick={onOpenRegisterModal}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                title="Register and create account for a Bacenta Leader"
+              >
+                <Plus className="w-4 h-4 text-emerald-400" />
+                <span>+ Register Leader</span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsAddBacentaOpen(true)}
               className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"

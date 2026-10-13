@@ -19,25 +19,28 @@ import {
 } from './mockData';
 
 const STORAGE_KEYS = {
-  OUTREACHES: 'ephesians_outreaches_v6',
-  CURRENT_USER: 'ephesians_current_user_v6',
-  IS_ONLINE: 'ephesians_network_online_v6',
-  COUNCILS: 'ephesians_councils_v6',
-  GOVERNORSHIPS: 'ephesians_governorships_v6',
-  BACENTAS: 'ephesians_bacentas_v6',
-  LEADERS: 'ephesians_leaders_v6',
-  ALERTS: 'ephesians_alerts_v6',
-  AUDIT_LOGS: 'ephesians_audit_logs_v6',
-  USERS: 'ephesians_system_users_v6',
+  OUTREACHES: 'ephesians_outreaches_v8',
+  CURRENT_USER: 'ephesians_current_user_v8',
+  IS_ONLINE: 'ephesians_network_online_v8',
+  COUNCILS: 'ephesians_councils_v8',
+  GOVERNORSHIPS: 'ephesians_governorships_v8',
+  BACENTAS: 'ephesians_bacentas_v8',
+  LEADERS: 'ephesians_leaders_v8',
+  ALERTS: 'ephesians_alerts_v8',
+  AUDIT_LOGS: 'ephesians_audit_logs_v8',
+  USERS: 'ephesians_system_users_v8',
 };
 
 // Purge any legacy sample keys
 try {
-  ['v1', 'v2', 'v3', 'v4', 'v5'].forEach((v) => {
+  ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'].forEach((v) => {
     localStorage.removeItem(`ephesians_outreaches_${v}`);
     localStorage.removeItem(`ephesians_alerts_${v}`);
     localStorage.removeItem(`ephesians_audit_logs_${v}`);
     localStorage.removeItem(`ephesians_councils_${v}`);
+    localStorage.removeItem(`ephesians_governorships_${v}`);
+    localStorage.removeItem(`ephesians_bacentas_${v}`);
+    localStorage.removeItem(`ephesians_leaders_${v}`);
     localStorage.removeItem(`ephesians_system_users_${v}`);
     localStorage.removeItem(`ephesians_current_user_${v}`);
   });
@@ -141,25 +144,49 @@ export function logoutUser() {
   setCurrentUser(null);
 }
 
+const MOCK_USER_EMAILS = new Set([
+  'bishop.nakoja@ephesiansoutreach.org',
+  'pastor.ofori@ephesiansoutreach.org',
+  'pastor.emmanuel@ephesiansoutreach.org',
+  'pastor.ruth@ephesiansoutreach.org',
+  'pastor.grace@ephesiansoutreach.org',
+  'pastor.peter@ephesiansoutreach.org',
+  'pastor.michael@ephesiansoutreach.org',
+  'pastor.ebenezer@ephesiansoutreach.org',
+  'pastor.joseph@ephesiansoutreach.org',
+  'pastor.enoch@ephesiansoutreach.org',
+  'pastor.osei@ephesiansoutreach.org',
+  'abigail.kpodo@ephesiansoutreach.org',
+]);
+
 export function getUsers(): UserProfile[] {
   const stored = localStorage.getItem(STORAGE_KEYS.USERS);
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Ensure any new system users (e.g. Bishop Isaac Nakoja) are present
-        const merged = [...parsed];
-        let hasNew = false;
-        SYSTEM_USERS.forEach((sysUser) => {
-          if (!merged.some((u) => u.id === sysUser.id || u.email === sysUser.email)) {
-            merged.push(sysUser);
-            hasNew = true;
-          }
-        });
-        if (hasNew) {
-          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(merged));
+        // Filter out all deleted mock samples
+        const cleaned = parsed.filter(
+          (u) =>
+            !MOCK_USER_EMAILS.has(u.email?.trim().toLowerCase()) &&
+            !u.id?.startsWith('user_co_') &&
+            !u.id?.startsWith('user_gov_') &&
+            !u.id?.startsWith('user_go_') &&
+            !u.id?.startsWith('user_leader_')
+        );
+
+        // Ensure Fredrick Dogbatsey is present
+        const hasAdmin = cleaned.some(
+          (u) =>
+            u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
+            u.email?.trim().toLowerCase() === 'dogbatseyfredrick.com'
+        );
+        if (!hasAdmin) {
+          cleaned.unshift(SYSTEM_USERS[0]);
         }
-        return merged;
+
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(cleaned));
+        return cleaned;
       }
     } catch {
       // fallback
@@ -199,11 +226,26 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
   return { success: true, user: newUser };
 }
 
-export function loginUser(email: string, password?: string): UserProfile {
+export function loginUser(emailInput: string, password?: string): UserProfile {
   const allUsers = getUsers();
-  const user = allUsers.find((u) => u.email.trim().toLowerCase() === email.trim().toLowerCase());
+  const cleanInput = emailInput.trim().toLowerCase();
+
+  const user = allUsers.find((u) => {
+    const uEmail = u.email.trim().toLowerCase();
+    // Allow 'dogbatseyfredrick.com' or 'dogbatseyfredrick@gmail.com'
+    if (
+      cleanInput === 'dogbatseyfredrick.com' &&
+      (uEmail === 'dogbatseyfredrick@gmail.com' || uEmail === 'dogbatseyfredrick.com')
+    ) {
+      return true;
+    }
+    return uEmail === cleanInput;
+  });
+
   if (!user) {
-    throw new Error('Account not found with this email. Please check your credentials or contact the General Overseer.');
+    throw new Error(
+      'Account not found. Use dogbatseyfredrick.com to log in as Lead Admin.'
+    );
   }
   if (password && user.password && user.password !== password) {
     throw new Error('Invalid password. Please check your credentials.');
@@ -214,14 +256,14 @@ export function loginUser(email: string, password?: string): UserProfile {
 }
 
 // ========================
-// COUNCILS (Strictly Ephesians 1 to 5)
+// COUNCILS (Ephesians 1 to 5 + dynamically added councils)
 // ========================
 export function getCouncils(): string[] {
   const stored = localStorage.getItem(STORAGE_KEYS.COUNCILS);
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0 && !parsed.includes('Ephesians 6')) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed;
       }
     } catch {
@@ -232,15 +274,28 @@ export function getCouncils(): string[] {
   return COUNCILS_LIST;
 }
 
-export function addCouncil(name: string) {
+export function addCouncil(name: string): string[] {
   const clean = name.trim();
-  if (!clean) return;
+  if (!clean) return getCouncils();
   const list = getCouncils();
   if (!list.includes(clean)) {
     const updated = [...list, clean];
     localStorage.setItem(STORAGE_KEYS.COUNCILS, JSON.stringify(updated));
+    addAuditLog({
+      action: 'CREATE',
+      details: `Added new council jurisdiction: ${clean}.`,
+      status: 'SUCCESS',
+    });
     notify();
+
+    fetch('/api/councils', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: clean }),
+    }).catch(() => {});
+    return updated;
   }
+  return list;
 }
 
 // ========================
@@ -403,13 +458,16 @@ export function getOutreaches(): OutreachEntry[] {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.filter((o) => !o.id?.startsWith('outreach_eph'));
+        return cleaned;
+      }
     } catch {
       // fallback
     }
   }
-  localStorage.setItem(STORAGE_KEYS.OUTREACHES, JSON.stringify(INITIAL_OUTREACHES));
-  return INITIAL_OUTREACHES;
+  localStorage.setItem(STORAGE_KEYS.OUTREACHES, JSON.stringify([]));
+  return [];
 }
 
 export function getOutreachesForUser(user: UserProfile | null): OutreachEntry[] {
@@ -418,7 +476,7 @@ export function getOutreachesForUser(user: UserProfile | null): OutreachEntry[] 
   }
   const all = getOutreaches();
   if (isGeneralOverseer(user.role)) {
-    // General Overseer (Bishop Isaac Nakoja & Admin) has access across the board to all 5 Councils!
+    // General Overseer & Admin have access across the board to all Councils!
     return all;
   }
   if (isCouncilOverseer(user.role)) {

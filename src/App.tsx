@@ -42,6 +42,7 @@ import { PrintableReportModal } from './components/PrintableReportModal';
 import { AccessRestrictedView } from './components/AccessRestrictedView';
 import { LiveNotificationToasts } from './components/LiveNotificationToasts';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { AiScriptureMotivationModal } from './components/AiScriptureMotivationModal';
 
 export default function App() {
   const [currentUser, setUserState] = useState<UserProfile | null>(getCurrentUser);
@@ -61,6 +62,7 @@ export default function App() {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isScriptureModalOpen, setIsScriptureModalOpen] = useState(false);
 
   // Initialize and keep Real-Time WebSocket in sync with active user
   useEffect(() => {
@@ -152,6 +154,8 @@ export default function App() {
         pendingSyncCount={pendingSyncCount}
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationModalOpen(true)}
+        onOpenScriptureMotivation={() => setIsScriptureModalOpen(true)}
+        onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
       />
 
       {/* Main Container Viewport */}
@@ -163,6 +167,7 @@ export default function App() {
             onEntrySaved={() => {
               setOutreaches(getOutreachesForUser(currentUser));
             }}
+            onOpenScriptureMotivation={() => setIsScriptureModalOpen(true)}
           />
         )}
 
@@ -182,6 +187,7 @@ export default function App() {
                 outreaches={outreaches}
                 currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
+                onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
               />
             ) : isCouncilOverseerUser ? (
@@ -194,7 +200,7 @@ export default function App() {
                 onNavigateToForm={() => setActiveTab('form')}
               />
             ) : isGeneralOverseerUser ? (
-              /* GENERAL OVERSEER DASHBOARD: ACCESS ACROSS BOARD TO ALL 5 COUNCILS (BISHOP ISAAC NAKOJA) */
+              /* GENERAL OVERSEER DASHBOARD: ACCESS ACROSS BOARD TO ALL COUNCILS */
               <OverseerDashboard
                 outreaches={outreaches}
                 currentUser={currentUser!}
@@ -357,6 +363,13 @@ export default function App() {
         onClose={() => setIsPrintModalOpen(false)}
         outreaches={outreaches}
         currentUser={currentUser}
+      />
+
+      {/* AI Pop-up Scripture Motivation (Evangelism, Soul Winning, Shepherding) */}
+      <AiScriptureMotivationModal
+        isOpen={isScriptureModalOpen}
+        onClose={() => setIsScriptureModalOpen(false)}
+        totalSoulsHarvested={outreaches.reduce((sum, o) => sum + (o.soulsWonCount || 0), 0)}
       />
     </div>
   );

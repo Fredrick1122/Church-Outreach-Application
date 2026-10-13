@@ -126,28 +126,21 @@ let councils: string[] = [
 ];
 
 let leadersPool: LeaderAttendance[] = [
-  { id: 'lead_1', name: 'Bishop Isaac Nakoja', role: 'General Overseer', council: 'Ephesians 1', isPresent: false, soulsWitnessed: 0 },
-  { id: 'lead_2', name: 'Fredrick Dogbatsey', role: 'Operations Admin', council: 'Ephesians 1', isPresent: true, soulsWitnessed: 14 },
-  { id: 'lead_3', name: 'Pastor David Ofori', role: 'Council Overseer', council: 'Ephesians 1', isPresent: true, soulsWitnessed: 18 },
-  { id: 'lead_4', name: 'Pastor Emmanuel Addo', role: 'Council Overseer', council: 'Ephesians 2', isPresent: true, soulsWitnessed: 9 },
-  { id: 'lead_5', name: 'Pastor Ruth Coffie', role: 'Council Overseer', council: 'Ephesians 3', isPresent: true, soulsWitnessed: 11 },
-  { id: 'lead_6', name: 'Pastor Grace Arthur', role: 'Council Overseer', council: 'Ephesians 4', isPresent: true, soulsWitnessed: 12 },
-  { id: 'lead_7', name: 'Pastor Peter Quaye', role: 'Council Overseer', council: 'Ephesians 5', isPresent: true, soulsWitnessed: 15 },
-  { id: 'lead_8', name: 'Sister Abigail Kpodo', role: 'Bacenta Leader', council: 'Ephesians 3', isPresent: true, soulsWitnessed: 8 },
+  { id: 'lead_1', name: 'Fredrick Dogbatsey', role: 'Operations Admin', council: 'All Councils', isPresent: false, soulsWitnessed: 0 },
 ];
 
 let outreaches: OutreachEntry[] = [];
 
 let fieldObjectives: FieldObjective[] = [
   {
-    id: 'obj_initial_1',
-    title: 'Operation Great Harvest: 50 Souls Blitz',
+    id: 'obj_great_harvest_5000',
+    title: 'Operation Great Harvest: 5,000 Souls Blitz',
     targetCouncil: 'All Councils',
-    targetSouls: 50,
-    targetLeaders: 12,
-    priority: 'high',
-    deadline: '2026-10-25',
-    instructions: 'Coordinate street invasion and 1v1 evangelism teams across public hubs and commuter terminals.',
+    targetSouls: 5000,
+    targetLeaders: 50,
+    priority: 'urgent',
+    deadline: '2026-12-31',
+    instructions: 'Kingdom mobilization across all councils: Personal evangelism, street invasions, and convert discipleship follow-up to achieve the 5,000 souls harvest goal.',
     createdBy: {
       id: 'user_admin_1',
       name: 'Fredrick Dogbatsey',
@@ -276,196 +269,29 @@ let auditLogs: AuditLog[] = [
 ];
 
 let systemUsers: any[] = [
-  // 1. GENERAL OVERSEER (Over all 5 councils)
-  {
-    id: 'user_go_1',
-    name: 'Bishop Isaac Nakoja',
-    email: 'bishop.nakoja@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'general_overseer',
-    roleTitle: 'General Overseer (All 5 Councils)',
-    council: 'All Councils (Ephesians 1 - 5)',
-    avatarInitials: 'IN',
-    avatarColor: 'bg-emerald-600',
-    phone: '+233 24 500 0001',
-  },
-  // 2. LEAD OPERATIONS ADMIN
   {
     id: 'user_admin_1',
     name: 'Fredrick Dogbatsey',
-    email: 'dogbatseyfredrick@gmail.com',
+    email: 'dogbatseyfredrick.com',
     password: 'password123',
     role: 'admin',
     roleTitle: 'Lead Operations Admin',
-    council: 'All Councils (Ephesians 1 - 5)',
+    council: 'All Councils',
     avatarInitials: 'FD',
     avatarColor: 'bg-teal-600',
     phone: '+233 24 412 8990',
   },
-  // 3. COUNCIL OVERSEERS (Pastors over the 5 councils)
-  {
-    id: 'user_co_eph1',
-    name: 'Pastor David Ofori',
-    email: 'pastor.ofori@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'council_overseer',
-    roleTitle: 'Ephesians 1 Council Overseer Pastor',
-    council: 'Ephesians 1',
-    avatarInitials: 'DO',
-    avatarColor: 'bg-blue-600',
-    phone: '+233 24 998 7766',
-  },
-  {
-    id: 'user_co_eph2',
-    name: 'Pastor Emmanuel Addo',
-    email: 'pastor.emmanuel@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'council_overseer',
-    roleTitle: 'Ephesians 2 Council Overseer Pastor',
-    council: 'Ephesians 2',
-    avatarInitials: 'EA',
-    avatarColor: 'bg-indigo-600',
-    phone: '+233 20 891 2234',
-  },
-  {
-    id: 'user_co_eph3',
-    name: 'Pastor Ruth Coffie',
-    email: 'pastor.ruth@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'council_overseer',
-    roleTitle: 'Ephesians 3 Council Overseer Pastor',
-    council: 'Ephesians 3',
-    avatarInitials: 'RC',
-    avatarColor: 'bg-purple-600',
-    phone: '+233 27 554 9912',
-  },
-  {
-    id: 'user_co_eph4',
-    name: 'Pastor Grace Arthur',
-    email: 'pastor.grace@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'council_overseer',
-    roleTitle: 'Ephesians 4 Council Overseer Pastor',
-    council: 'Ephesians 4',
-    avatarInitials: 'GA',
-    avatarColor: 'bg-cyan-600',
-    phone: '+233 26 443 2211',
-  },
-  {
-    id: 'user_co_eph5',
-    name: 'Pastor Peter Quaye',
-    email: 'pastor.peter@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'council_overseer',
-    roleTitle: 'Ephesians 5 Council Overseer Pastor',
-    council: 'Ephesians 5',
-    avatarInitials: 'PQ',
-    avatarColor: 'bg-amber-600',
-    phone: '+233 20 556 7788',
-  },
-  // 4. GOVERNORS (Pastors overseeing Governorships under Councils)
-  {
-    id: 'user_gov_eph1',
-    name: 'Pastor Michael Mensah',
-    email: 'pastor.michael@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'governor',
-    roleTitle: 'Governorship Alpha Pastor',
-    council: 'Ephesians 1',
-    governorship: 'Governorship Alpha (Praise)',
-    avatarInitials: 'MM',
-    avatarColor: 'bg-sky-600',
-    phone: '+233 24 112 3344',
-  },
-  {
-    id: 'user_gov_eph2',
-    name: 'Pastor Ebenezer Addo',
-    email: 'pastor.ebenezer@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'governor',
-    roleTitle: 'Governorship Victory Pastor',
-    council: 'Ephesians 2',
-    governorship: 'Governorship Victory (Faith)',
-    avatarInitials: 'EA',
-    avatarColor: 'bg-blue-600',
-    phone: '+233 20 119 4488',
-  },
-  {
-    id: 'user_gov_eph3',
-    name: 'Pastor Joseph Kpodo',
-    email: 'pastor.joseph@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'governor',
-    roleTitle: 'Governorship Goshen Pastor',
-    council: 'Ephesians 3',
-    governorship: 'Governorship Goshen (Light)',
-    avatarInitials: 'JK',
-    avatarColor: 'bg-purple-600',
-    phone: '+233 54 330 9922',
-  },
-  {
-    id: 'user_gov_eph4',
-    name: 'Pastor Enoch Arthur',
-    email: 'pastor.enoch@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'governor',
-    roleTitle: 'Governorship Sharon Pastor',
-    council: 'Ephesians 4',
-    governorship: 'Governorship Sharon (Rose)',
-    avatarInitials: 'EA',
-    avatarColor: 'bg-indigo-600',
-    phone: '+233 24 771 8899',
-  },
-  {
-    id: 'user_gov_eph5',
-    name: 'Pastor Peter Osei',
-    email: 'pastor.osei@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'governor',
-    roleTitle: 'Governorship Tabor Pastor',
-    council: 'Ephesians 5',
-    governorship: 'Governorship Tabor (Power)',
-    avatarInitials: 'PO',
-    avatarColor: 'bg-amber-600',
-    phone: '+233 20 776 5544',
-  },
-  // 5. BACENTA FIELD LEADERS
-  {
-    id: 'user_leader_1',
-    name: 'Sister Abigail Kpodo',
-    email: 'abigail.kpodo@ephesiansoutreach.org',
-    password: 'password123',
-    role: 'leader',
-    roleTitle: 'Bacenta Leader / Field Evangelist',
-    council: 'Ephesians 3',
-    governorship: 'Governorship Goshen (Light)',
-    bacenta: 'Bacenta Goshen (Light)',
-    avatarInitials: 'AK',
-    avatarColor: 'bg-rose-600',
-    phone: '+233 54 332 1198',
-  },
 ];
 
 let governorshipsByCouncil: Record<string, string[]> = {
-  'Ephesians 1': ['Governorship Alpha (Praise)', 'Governorship Bethel (Grace)'],
-  'Ephesians 2': ['Governorship Victory (Faith)', 'Governorship Shiloh (Peace)'],
-  'Ephesians 3': ['Governorship Goshen (Light)', 'Governorship Peniel (Glory)'],
-  'Ephesians 4': ['Governorship Sharon (Rose)', 'Governorship Gilead (Healing)'],
-  'Ephesians 5': ['Governorship Tabor (Power)', 'Governorship Bethany (Life)'],
+  'Ephesians 1': [],
+  'Ephesians 2': [],
+  'Ephesians 3': [],
+  'Ephesians 4': [],
+  'Ephesians 5': [],
 };
 
-let bacentasByGovernorship: Record<string, string[]> = {
-  'Governorship Alpha (Praise)': ['Bacenta Alpha (Praise)', 'Bacenta Zion (Dominion)', 'Bacenta Living Waters'],
-  'Governorship Bethel (Grace)': ['Bacenta Bethel (Grace)', 'Bacenta Mercy Seat'],
-  'Governorship Victory (Faith)': ['Bacenta Victory (Faith)', 'Bacenta Overcomers', 'Bacenta Conquerors'],
-  'Governorship Shiloh (Peace)': ['Bacenta Shiloh (Peace)', 'Bacenta Still Waters'],
-  'Governorship Goshen (Light)': ['Bacenta Goshen (Light)', 'Bacenta City on a Hill', 'Bacenta Daybreak'],
-  'Governorship Peniel (Glory)': ['Bacenta Peniel (Glory)', 'Bacenta Divine Favor'],
-  'Governorship Sharon (Rose)': ['Bacenta Sharon (Rose)', 'Bacenta Sweet Fragrance'],
-  'Governorship Gilead (Healing)': ['Bacenta Gilead (Healing)', 'Bacenta Great Physician'],
-  'Governorship Tabor (Power)': ['Bacenta Tabor (Power)', 'Bacenta Mount Zion'],
-  'Governorship Bethany (Life)': ['Bacenta Bethany (Life)', 'Bacenta Olive Grove'],
-};
+let bacentasByGovernorship: Record<string, string[]> = {};
 
 // ========================
 // API ENDPOINTS
@@ -585,7 +411,7 @@ app.get('/api/bacentas', (req: Request, res: Response) => {
 app.post('/api/bacentas', (req: Request, res: Response) => {
   const { governorship, council, name, bacentaName } = req.body;
   const targetName = (name || bacentaName || '').trim();
-  const targetGov = (governorship || (council ? (governorshipsByCouncil[council]?.[0] || 'Governorship Alpha (Praise)') : '')).trim();
+  const targetGov = (governorship || (council ? (governorshipsByCouncil[council]?.[0] || `${council} Governorship`) : '')).trim();
 
   if (!targetGov || !targetName) {
     res.status(400).json({ error: 'Governorship and bacenta name are required' });
@@ -708,7 +534,7 @@ app.post('/api/outreaches', (req: Request, res: Response) => {
     submittedBy: body.submittedBy || {
       id: 'user_admin_1',
       name: 'Fredrick Dogbatsey',
-      email: 'dogbatseyfredrick@gmail.com',
+      email: 'dogbatseyfredrick.com',
       role: 'admin',
     },
     approvalStatus: isSubmittedByAdmin ? 'approved' : body.approvalStatus || 'pending',
@@ -1036,6 +862,114 @@ app.get('/api/presence', (req: Request, res: Response) => {
       userId: c.userId,
     })),
   });
+});
+
+// 11. AI Scripture Motivation (Evangelism, Soul Winning, Shepherding)
+app.post('/api/ai-motivation', async (req: Request, res: Response) => {
+  const { category, customTopic } = req.body;
+  const fallbackScriptures = [
+    {
+      reference: 'Proverbs 11:30',
+      text: 'The fruit of the righteous is a tree of life; and he that winneth souls is wise.',
+      theme: 'Soul Winning & Heavenly Wisdom',
+      exhortation: 'Every soul you witness to is an eternal triumph over darkness. Winning souls into the kingdom of light is the highest calling and truest wisdom. Step out today with divine authority for the 5,000 Souls Great Harvest!',
+      prayer: 'Lord, give me heavenly wisdom, compassionate boldness, and utterance to win precious souls today.',
+    },
+    {
+      reference: 'Matthew 28:19-20',
+      text: 'Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost: Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world. Amen.',
+      theme: 'The Apostolic Great Commission',
+      exhortation: 'You never walk the outreach fields alone. The King of Kings goes before you with all authority in heaven and earth. Speak Christ with bold faith!',
+      prayer: 'Lord Jesus, empower every field worker across all councils to proclaim Your word without fear.',
+    },
+    {
+      reference: 'John 10:11, 14',
+      text: 'I am the good shepherd: the good shepherd giveth his life for the sheep... I know my sheep, and am known of mine.',
+      theme: 'Apostolic Shepherding & Bacenta Care',
+      exhortation: 'Winning souls is the beginning; shepherding them with patient love and discipleship establishes the kingdom. Follow up with tenderness and spiritual vigilance.',
+      prayer: 'Holy Spirit, give our governors and bacenta leaders the heart of the Good Shepherd to nurse and establish every new convert.',
+    },
+    {
+      reference: 'Daniel 12:3',
+      text: 'And they that be wise shall shine as the brightness of the firmament; and they that turn many to righteousness as the stars for ever and ever.',
+      theme: 'Eternal Reward of Soul Winners',
+      exhortation: 'Earthly rewards fade away, but those who turn many to righteousness will shine as luminous stars across eternity. Your labor in the harvest field is never in vain!',
+      prayer: 'Father, ignite an unquenchable fire in our spirits to turn multitudes unto righteousness.',
+    },
+    {
+      reference: 'Acts 1:8',
+      text: 'But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.',
+      theme: 'Supernatural Power for the Streets',
+      exhortation: 'You do not minister by human wisdom, but with the divine power of the Holy Ghost. Go into every neighborhood expecting miracles, convictions, and changed lives!',
+      prayer: 'Almighty God, release Pentecostal boldness and demonstration of the Holy Spirit on every team today.',
+    },
+    {
+      reference: 'John 21:15-17',
+      text: 'He saith unto him, Feed my lambs... Feed my sheep.',
+      theme: 'The Shepherd’s Sacred Trust',
+      exhortation: 'The purest demonstration of our love for Christ is faithful shepherd-care over His flock. Call, visit, and pray over every convert on your roster until they are established.',
+      prayer: 'Lord, give us persistent love to follow up on every convert until Christ is formed in them.',
+    },
+    {
+      reference: 'Luke 15:7',
+      text: 'I say unto you, that likewise joy shall be in heaven over one sinner that repenteth, more than over ninety and nine just persons, which need no repentance.',
+      theme: 'Joy in the Courts of Heaven',
+      exhortation: 'Every single soul led to repentance triggers celebratory joy in heaven! Let us cause heaven to rejoice abundantly through our harvest blitz today!',
+      prayer: 'Lord, make our team instruments of great heavenly joy as we bring sinners to repentance.',
+    },
+    {
+      reference: '2 Timothy 4:2, 5',
+      text: 'Preach the word; be instant in season, out of season... do the work of an evangelist, make full proof of thy ministry.',
+      theme: 'Uncompromising Field Endurance',
+      exhortation: 'Whether people welcome the word or hesitate, preach Christ with unyielding love. Fulfill your ministry and take your place in the harvest workforce!',
+      prayer: 'Lord, make us steadfast and unmovable in preaching the gospel in every season.',
+    },
+  ];
+
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const prompt = `You are a spirit-filled Christian evangelist and pastoral shepherd mentor. 
+Generate an inspiring, deeply motivating scripture reflection for field evangelists, church overseers, governors, and bacenta leaders who are conducting outreaches targeting a 5,000 Souls Great Harvest.
+Focus on: ${category || customTopic || 'Soul Winning, Evangelism, and Shepherding Discipleship'}.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "reference": "Bible Book Chapter:Verse (e.g. Proverbs 11:30 or 2 Timothy 4:5)",
+  "text": "Exact or traditional scripture verse text",
+  "theme": "Short punchy inspirational theme (e.g. Divine Harvest Fire)",
+  "exhortation": "2-3 sentences of passionate, inspiring exhortation to fire up the evangelist or shepherd",
+  "prayer": "1-sentence apostolic prayer for the field team"
+}`;
+
+      const aiPromise = ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('AI generation timeout')), 3500)
+      );
+
+      const response: any = await Promise.race([aiPromise, timeoutPromise]);
+
+      if (response && response.text) {
+        const parsed = JSON.parse(response.text);
+        res.json({ success: true, source: 'ai', motivation: parsed });
+        return;
+      }
+    } catch (err) {
+      console.warn('Gemini AI generation fallback:', err);
+    }
+  }
+
+  // Fallback to random selected rich scripture
+  const random = fallbackScriptures[Math.floor(Math.random() * fallbackScriptures.length)];
+  res.json({ success: true, source: 'curated', motivation: random });
 });
 
 // ========================

@@ -346,7 +346,7 @@ export const OverseerDashboard: React.FC<Props> = ({
                 </>
               ) : (
                 <>
-                  General Overseer: <strong className="text-slate-200">Bishop Isaac Nakoja</strong>. Comprehensive oversight spanning all 5 Apostolic Councils (Ephesians 1 to 5), their Overseer Pastors, Governorships, and every subordinate Bacenta. Access to view all entries and database across board.
+                  General Overseer: <strong className="text-slate-200">{currentUser.name}</strong>. Comprehensive oversight spanning all Apostolic Councils, their Overseer Pastors, Governorships, and every subordinate Bacenta. Access to view all entries and database across board.
                 </>
               )}
             </p>

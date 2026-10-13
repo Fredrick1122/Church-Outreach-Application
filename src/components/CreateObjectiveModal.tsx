@@ -19,15 +19,15 @@ export const CreateObjectiveModal: React.FC<Props> = ({
 }) => {
   const councils = ['All Councils', ...getCouncils()];
 
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState('Operation Great Harvest: 5,000 Souls Blitz');
   const [targetCouncil, setTargetCouncil] = useState('All Councils');
-  const [targetSouls, setTargetSouls] = useState<number>(50);
-  const [targetLeaders, setTargetLeaders] = useState<number>(10);
-  const [priority, setPriority] = useState<'urgent' | 'high' | 'standard'>('high');
-  const [deadline, setDeadline] = useState(
-    new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+  const [targetSouls, setTargetSouls] = useState<number>(5000);
+  const [targetLeaders, setTargetLeaders] = useState<number>(50);
+  const [priority, setPriority] = useState<'urgent' | 'high' | 'standard'>('urgent');
+  const [deadline, setDeadline] = useState('2026-12-31');
+  const [instructions, setInstructions] = useState(
+    'Kingdom mobilization across all councils: Personal evangelism, street invasions, and convert discipleship follow-up to achieve the 5,000 souls harvest goal.'
   );
-  const [instructions, setInstructions] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,8 +48,8 @@ export const CreateObjectiveModal: React.FC<Props> = ({
         {
           title: title.trim(),
           targetCouncil,
-          targetSouls: Number(targetSouls) || 10,
-          targetLeaders: Number(targetLeaders) || 5,
+          targetSouls: Number(targetSouls) || 5000,
+          targetLeaders: Number(targetLeaders) || 50,
           priority,
           deadline,
           instructions: instructions.trim(),

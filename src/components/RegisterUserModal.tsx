@@ -11,13 +11,17 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
+  Plus,
 } from 'lucide-react';
 import { UserProfile, UserRole } from '../types';
 import {
   getCouncils,
+  addCouncil,
   registerUser,
   getGovernorshipsForCouncil,
+  addGovernorshipToCouncil,
   getBacentasForGovernorship,
+  addBacentaToGovernorship,
 } from '../services/storage';
 
 interface Props {
@@ -33,16 +37,31 @@ export const RegisterUserModal: React.FC<Props> = ({
   currentUser,
   onUserRegistered,
 }) => {
-  const councils = getCouncils(); // Strictly Ephesians 1 to 5
+  const [councilsList, setCouncilsList] = useState<string[]>(getCouncils());
+  const [isAddingCouncil, setIsAddingCouncil] = useState(false);
+  const [newCouncilInput, setNewCouncilInput] = useState('');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('password123');
-  const [role, setRole] = useState<UserRole>('council_overseer');
-  const [council, setCouncil] = useState('Ephesians 1');
-  const [governorship, setGovernorship] = useState('Governorship Alpha (Praise)');
-  const [roleTitle, setRoleTitle] = useState('Ephesians 1 Council Overseer Pastor');
+
+  // Set initial default role based on currentUser authority:
+  const isGov = currentUser?.role === 'governor';
+  const isCnl = currentUser?.role === 'council_overseer' || currentUser?.role === 'overseer';
+
+  const [role, setRole] = useState<UserRole>(
+    isGov ? 'leader' : isCnl ? 'governor' : 'general_overseer'
+  );
+
+  const initialCouncil =
+    currentUser?.council && currentUser.council !== 'All Councils' && !currentUser.council.includes('All Councils')
+      ? currentUser.council
+      : councilsList[0] || 'Ephesians 1';
+
+  const [council, setCouncil] = useState(initialCouncil);
+  const [governorship, setGovernorship] = useState(currentUser?.governorship || '');
   const [bacenta, setBacenta] = useState('');
+  const [roleTitle, setRoleTitle] = useState('General Overseer (All Councils)');
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,24 +72,32 @@ export const RegisterUserModal: React.FC<Props> = ({
   const currentGovs = getGovernorshipsForCouncil(council);
   const currentBacentas = governorship ? getBacentasForGovernorship(governorship) : [];
 
+  const handleAddNewCouncil = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = newCouncilInput.trim();
+    if (!clean) return;
+    const updated = addCouncil(clean);
+    setCouncilsList(updated);
+    setCouncil(clean);
+    setNewCouncilInput('');
+    setIsAddingCouncil(false);
+  };
+
   const handleRoleChange = (newRole: UserRole) => {
     setRole(newRole);
-    if (newRole === 'general_overseer' || newRole === 'admin') {
-      setRoleTitle('General Overseer (All 5 Councils)');
-      setCouncil('All Councils (Ephesians 1 - 5)');
+    if (newRole === 'general_overseer') {
+      setRoleTitle('General Overseer (All Councils)');
+      setCouncil('All Councils');
     } else if (newRole === 'council_overseer' || newRole === 'overseer') {
-      const targetCnl = council.includes('All') ? 'Ephesians 1' : council;
+      const targetCnl = council.includes('All') ? councilsList[0] || 'Ephesians 1' : council;
       setCouncil(targetCnl);
       setRoleTitle(`${targetCnl} Council Overseer Pastor`);
     } else if (newRole === 'governor') {
-      const targetCnl = council.includes('All') ? 'Ephesians 1' : council;
+      const targetCnl = council.includes('All') ? councilsList[0] || 'Ephesians 1' : council;
       setCouncil(targetCnl);
-      const govs = getGovernorshipsForCouncil(targetCnl);
-      const firstGov = govs[0] || 'Governorship Alpha (Praise)';
-      setGovernorship(firstGov);
-      setRoleTitle(`${firstGov} Pastor`);
+      setRoleTitle(`${governorship || 'Governorship'} Pastor`);
     } else {
-      setRoleTitle('Bacenta Leader / Evangelist');
+      setRoleTitle('Bacenta Leader / Field Evangelist');
     }
   };
 
@@ -84,13 +111,6 @@ export const RegisterUserModal: React.FC<Props> = ({
       setRoleTitle(`${newCouncil} Council Overseer Pastor`);
     } else if (role === 'governor') {
       setRoleTitle(firstGov ? `${firstGov} Pastor` : `${newCouncil} Governorship Pastor`);
-    }
-  };
-
-  const handleGovernorshipChange = (newGov: string) => {
-    setGovernorship(newGov);
-    if (role === 'governor') {
-      setRoleTitle(`${newGov} Pastor`);
     }
   };
 
@@ -112,15 +132,6 @@ export const RegisterUserModal: React.FC<Props> = ({
         .substring(0, 2)
         .toUpperCase();
 
-      const colorOptions = [
-        'bg-emerald-600',
-        'bg-blue-600',
-        'bg-indigo-600',
-        'bg-purple-600',
-        'bg-amber-600',
-        'bg-rose-600',
-        'bg-teal-600',
-      ];
       const avatarColor =
         role === 'general_overseer' || role === 'admin'
           ? 'bg-emerald-600'
@@ -130,6 +141,16 @@ export const RegisterUserModal: React.FC<Props> = ({
           ? 'bg-blue-600'
           : 'bg-rose-600';
 
+      // If a custom governorship was typed and not yet registered, save it
+      if (governorship.trim() && !currentGovs.includes(governorship.trim()) && council !== 'All Councils') {
+        addGovernorshipToCouncil(council, governorship.trim());
+      }
+
+      // If a custom bacenta was typed and not yet registered, save it
+      if (bacenta.trim() && governorship.trim() && !currentBacentas.includes(bacenta.trim())) {
+        addBacentaToGovernorship(governorship.trim(), bacenta.trim());
+      }
+
       const newUser: UserProfile = {
         id: `user_${role}_${Date.now()}`,
         name: name.trim(),
@@ -137,9 +158,9 @@ export const RegisterUserModal: React.FC<Props> = ({
         password: password.trim() || 'password123',
         role,
         roleTitle: roleTitle.trim() || `${role.toUpperCase()}`,
-        council: role === 'general_overseer' ? 'All Councils (Ephesians 1 - 5)' : council,
-        governorship: role === 'governor' || role === 'leader' ? governorship : undefined,
-        bacenta: role === 'leader' && bacenta ? bacenta.trim() : undefined,
+        council: role === 'general_overseer' ? 'All Councils' : council,
+        governorship: role === 'governor' || role === 'leader' ? governorship.trim() : undefined,
+        bacenta: role === 'leader' && bacenta.trim() ? bacenta.trim() : undefined,
         avatarInitials: initials,
         avatarColor,
         phone: phone.trim(),
@@ -159,13 +180,22 @@ export const RegisterUserModal: React.FC<Props> = ({
     }
   };
 
+  // Determine which roles this user is permitted to create:
+  // General Overseer & Admin: all roles
+  // Council Overseer: Governor, Bacenta Leader, or fellow Council Overseer
+  // Governor: Bacenta Leader
+  const canCreateGeneralOverseer = !currentUser || currentUser.role === 'admin' || currentUser.role === 'general_overseer';
+  const canCreateCouncilOverseer = !currentUser || currentUser.role === 'admin' || currentUser.role === 'general_overseer' || isCnl;
+  const canCreateGovernor = !currentUser || currentUser.role === 'admin' || currentUser.role === 'general_overseer' || isCnl;
+  const canCreateLeader = true;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-800 flex flex-col">
+      <div className="bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-800 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400">
               <UserPlus className="w-4 h-4" />
             </div>
             <div>
@@ -173,13 +203,13 @@ export const RegisterUserModal: React.FC<Props> = ({
                 Register Ministry Account
               </h3>
               <p className="text-xs text-slate-400">
-                Admin portal to register Overseers, Governors, or Leaders
+                Provision General Overseer, Overseers, Governors, or Leaders
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -194,17 +224,19 @@ export const RegisterUserModal: React.FC<Props> = ({
             <div>
               <h4 className="text-base font-bold text-white">Account Successfully Registered!</h4>
               <p className="text-xs text-slate-300 mt-1">
-                <strong>{successUser.name}</strong> has been provisioned as{' '}
-                <span className="text-emerald-400 font-bold uppercase">{successUser.role}</span>.
+                <strong>{successUser.name}</strong> has been registered into the ministry system as{' '}
+                <span className="text-emerald-400 font-bold uppercase">{successUser.role.replace('_', ' ')}</span>.
               </p>
             </div>
 
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-left space-y-1.5 text-slate-300">
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-left space-y-1.5 text-slate-300">
               <p>
-                <strong>Login Email:</strong> <span className="font-mono text-white">{successUser.email}</span>
+                <strong>Login Email:</strong>{' '}
+                <span className="font-mono text-emerald-300 font-bold">{successUser.email}</span>
               </p>
               <p>
-                <strong>Password:</strong> <span className="font-mono text-emerald-400">{successUser.password}</span>
+                <strong>Password:</strong>{' '}
+                <span className="font-mono text-white">{successUser.password}</span>
               </p>
               <p>
                 <strong>Role & Title:</strong> {successUser.roleTitle}
@@ -226,7 +258,7 @@ export const RegisterUserModal: React.FC<Props> = ({
                 }}
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl"
               >
-                Register Another User
+                + Register Another Account
               </button>
               <button
                 type="button"
@@ -246,59 +278,83 @@ export const RegisterUserModal: React.FC<Props> = ({
               </div>
             )}
 
-            {/* Role Selection Tabs */}
+            {/* Role Authority Selection Grid */}
             <div>
               <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                Role Authority Tier *
+                Select Leadership Authority Tier *
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('council_overseer')}
-                  className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
-                    role === 'council_overseer' || role === 'overseer'
-                      ? 'bg-indigo-950/80 border-indigo-500 text-indigo-300 shadow-xs'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Shield className="w-4 h-4 mx-auto mb-1 text-indigo-400" />
-                  <span>Council Overseer</span>
-                  <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
-                    Ephesians 1 to 5
-                  </span>
-                </button>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {canCreateGeneralOverseer && (
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('general_overseer')}
+                    className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                      role === 'general_overseer'
+                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-xs'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                    <span>General Overseer</span>
+                    <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
+                      All Councils
+                    </span>
+                  </button>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('governor')}
-                  className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
-                    role === 'governor'
-                      ? 'bg-blue-950/80 border-blue-500 text-blue-300 shadow-xs'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Building2 className="w-4 h-4 mx-auto mb-1 text-blue-400" />
-                  <span>Governor</span>
-                  <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
-                    Governorship Pastor
-                  </span>
-                </button>
+                {canCreateCouncilOverseer && (
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('council_overseer')}
+                    className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                      role === 'council_overseer' || role === 'overseer'
+                        ? 'bg-indigo-950/80 border-indigo-500 text-indigo-300 shadow-xs'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Shield className="w-4 h-4 mx-auto mb-1 text-indigo-400" />
+                    <span>Council Overseer</span>
+                    <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
+                      Council Oversight
+                    </span>
+                  </button>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('leader')}
-                  className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
-                    role === 'leader'
-                      ? 'bg-rose-950/80 border-rose-500 text-rose-300 shadow-xs'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Layers className="w-4 h-4 mx-auto mb-1 text-rose-400" />
-                  <span>Bacenta Leader</span>
-                  <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
-                    Field Evangelist
-                  </span>
-                </button>
+                {canCreateGovernor && (
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('governor')}
+                    className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                      role === 'governor'
+                        ? 'bg-blue-950/80 border-blue-500 text-blue-300 shadow-xs'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4 mx-auto mb-1 text-blue-400" />
+                    <span>Governor</span>
+                    <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
+                      Governorship
+                    </span>
+                  </button>
+                )}
+
+                {canCreateLeader && (
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('leader')}
+                    className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                      role === 'leader'
+                        ? 'bg-rose-950/80 border-rose-500 text-rose-300 shadow-xs'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Layers className="w-4 h-4 mx-auto mb-1 text-rose-400" />
+                    <span>Bacenta Leader</span>
+                    <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
+                      Field Evangelist
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -313,21 +369,21 @@ export const RegisterUserModal: React.FC<Props> = ({
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Pastor Samuel Mensah"
+                  placeholder="e.g. Bishop Isaac Mensah"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-hidden focus:border-emerald-500 font-medium"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                  Email Address *
+                  Login Email *
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="samuel.mensah@ephesians.org"
+                  placeholder="e.g. overseer.mensah@gmail.com"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-hidden focus:border-emerald-500 font-medium"
                 />
               </div>
@@ -363,79 +419,146 @@ export const RegisterUserModal: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Council Assignment */}
+            {/* Council Assignment & Add Council */}
             {role !== 'general_overseer' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                    Assigned Council (Ephesians 1 to 5) *
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-200">
+                    Assigned Council *
                   </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingCouncil(!isAddingCouncil)}
+                    className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>{isAddingCouncil ? 'Cancel' : '+ Add More Councils'}</span>
+                  </button>
+                </div>
+
+                {isAddingCouncil ? (
+                  <div className="flex items-center gap-2 p-2 bg-slate-950 rounded-xl border border-emerald-800">
+                    <input
+                      type="text"
+                      placeholder="e.g. Ephesians 6 or Philippians 1"
+                      value={newCouncilInput}
+                      onChange={(e) => setNewCouncilInput(e.target.value)}
+                      className="flex-1 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddNewCouncil}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg whitespace-nowrap"
+                    >
+                      Save Council
+                    </button>
+                  </div>
+                ) : (
                   <select
                     value={council}
+                    disabled={isCnl || isGov}
                     onChange={(e) => handleCouncilChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-emerald-500 font-medium"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-emerald-500 font-medium disabled:opacity-75"
                   >
-                    {councils.map((c) => (
+                    {councilsList.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                    Role Title
-                  </label>
-                  <input
-                    type="text"
-                    value={roleTitle}
-                    onChange={(e) => setRoleTitle(e.target.value)}
-                    placeholder="Overseer Pastor"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-medium"
-                  />
-                </div>
+                )}
               </div>
             )}
+
+            {/* Role Title */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                Official Ministry Title
+              </label>
+              <input
+                type="text"
+                value={roleTitle}
+                onChange={(e) => setRoleTitle(e.target.value)}
+                placeholder="e.g. General Overseer, Council Overseer Pastor"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-medium"
+              />
+            </div>
 
             {/* Governorship Assignment (For Governor or Leader) */}
-            {(role === 'governor' || role === 'leader') && currentGovs.length > 0 && (
+            {(role === 'governor' || role === 'leader') && (
               <div>
                 <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                  Assigned Governorship under {council} *
+                  Governorship under {council} *
                 </label>
-                <select
-                  value={governorship}
-                  onChange={(e) => handleGovernorshipChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-blue-500 font-medium"
-                >
-                  {currentGovs.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
+                {currentGovs.length > 0 ? (
+                  <div className="space-y-1.5">
+                    <select
+                      value={governorship}
+                      disabled={isGov}
+                      onChange={(e) => setGovernorship(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-blue-500 font-medium disabled:opacity-75"
+                    >
+                      <option value="">Select Governorship...</option>
+                      {currentGovs.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-slate-400">
+                      Or type a new governorship below if creating for the first time:
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Or enter new governorship name..."
+                      value={governorship}
+                      disabled={isGov}
+                      onChange={(e) => setGovernorship(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-medium disabled:opacity-75"
+                    />
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    required={role === 'governor'}
+                    placeholder="Enter new governorship name (e.g. Governorship Alpha)"
+                    value={governorship}
+                    disabled={isGov}
+                    onChange={(e) => setGovernorship(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-hidden focus:border-blue-500 font-medium"
+                  />
+                )}
               </div>
             )}
 
-            {/* Optional Bacenta Assignment (For Leader) */}
-            {role === 'leader' && currentBacentas.length > 0 && (
+            {/* Bacenta Assignment (For Leader) */}
+            {role === 'leader' && (
               <div>
                 <label className="block text-xs font-semibold text-slate-200 mb-1.5">
-                  Assigned Bacenta under {governorship} (Optional)
+                  Bacenta Name (Optional / Add on the fly)
                 </label>
-                <select
-                  value={bacenta}
-                  onChange={(e) => setBacenta(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs"
-                >
-                  <option value="">All Bacentas in Governorship</option>
-                  {currentBacentas.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
+                {currentBacentas.length > 0 ? (
+                  <select
+                    value={bacenta}
+                    onChange={(e) => setBacenta(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs"
+                  >
+                    <option value="">Select or leave open...</option>
+                    {currentBacentas.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Enter new bacenta name (e.g. Bacenta Zion)"
+                    value={bacenta}
+                    onChange={(e) => setBacenta(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs"
+                  />
+                )}
               </div>
             )}
 

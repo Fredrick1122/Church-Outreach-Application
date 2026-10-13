@@ -32,12 +32,12 @@ export const AuditTrailView: React.FC<Props> = ({ currentUser }) => {
           </p>
         </div>
 
-        {currentUser.role === 'admin' && (
+        {(currentUser.role === 'admin' || currentUser.role === 'general_overseer') && (
           <button
             onClick={() => setShowResetConfirm(true)}
             className="px-3 py-1.5 text-xs font-semibold text-rose-300 bg-rose-950/70 hover:bg-rose-900/70 border border-rose-800 rounded-lg transition-colors self-start sm:self-auto"
           >
-            Reset Demo Data
+            Reset to Default
           </button>
         )}
       </div>
@@ -71,9 +71,9 @@ export const AuditTrailView: React.FC<Props> = ({ currentUser }) => {
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
           <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 border border-slate-800">
-            <h3 className="font-bold text-white text-base">Reset Demonstration Data?</h3>
+            <h3 className="font-bold text-white text-base">Reset Database to Default?</h3>
             <p className="text-xs text-slate-400">
-              This will restore all default outreaches, councils, and simulated field logs to their initial pristine state.
+              This will clear outreach logs and restore the official 5 Ephesians Councils and Governorships to their pristine default schema.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
@@ -86,7 +86,7 @@ export const AuditTrailView: React.FC<Props> = ({ currentUser }) => {
                 onClick={handleReset}
                 className="px-4 py-2 text-xs font-semibold bg-rose-600 text-white rounded-lg hover:bg-rose-500"
               >
-                Reset Data
+                Reset to Default
               </button>
             </div>
           </div>
