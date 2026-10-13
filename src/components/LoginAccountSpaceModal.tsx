@@ -313,7 +313,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
 
                 <div className="grid grid-cols-1 gap-2">
                   {generalOverseers.map((user) => {
-                    const isSelected = currentUser.id === user.id;
+                    const isSelected = currentUser?.id === user.id;
                     return (
                       <div
                         key={user.id}
@@ -376,7 +376,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
 
                 <div className="grid grid-cols-1 gap-2">
                   {councilOverseers.map((user) => {
-                    const isSelected = currentUser.id === user.id;
+                    const isSelected = currentUser?.id === user.id;
                     return (
                       <div
                         key={user.id}
@@ -439,7 +439,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
 
                 <div className="grid grid-cols-1 gap-2">
                   {governors.map((user) => {
-                    const isSelected = currentUser.id === user.id;
+                    const isSelected = currentUser?.id === user.id;
                     return (
                       <div
                         key={user.id}
@@ -503,7 +503,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
 
                   <div className="grid grid-cols-1 gap-2">
                     {leaders.map((user) => {
-                      const isSelected = currentUser.id === user.id;
+                      const isSelected = currentUser?.id === user.id;
                       return (
                         <div
                           key={user.id}

@@ -22,6 +22,7 @@ import {
   Phone,
   FileUp,
   Target,
+  KeyRound,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {

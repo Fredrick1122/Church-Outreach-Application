@@ -180,7 +180,7 @@ export default function App() {
               /* GOVERNORSHIP DASHBOARD: ACCESS TO ALL BACENTAS UNDER THEIR GOVERNORSHIP ONLY */
               <GovernorDashboard
                 outreaches={outreaches}
-                currentUser={currentUser}
+                currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
               />
@@ -188,7 +188,7 @@ export default function App() {
               /* COUNCIL OVERSEER DASHBOARD: ACCESS TO THEIR COUNCIL SOLELY */
               <OverseerDashboard
                 outreaches={outreaches}
-                currentUser={currentUser}
+                currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
@@ -197,7 +197,7 @@ export default function App() {
               /* GENERAL OVERSEER DASHBOARD: ACCESS ACROSS BOARD TO ALL 5 COUNCILS (BISHOP ISAAC NAKOJA) */
               <OverseerDashboard
                 outreaches={outreaches}
-                currentUser={currentUser}
+                currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
@@ -243,7 +243,7 @@ export default function App() {
                 {adminViewMode === 'overseer' ? (
                   <OverseerDashboard
                     outreaches={outreaches}
-                    currentUser={currentUser}
+                    currentUser={currentUser!}
                     onOpenReportPrint={() => setIsPrintModalOpen(true)}
                     onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                     onNavigateToForm={() => setActiveTab('form')}
@@ -251,7 +251,7 @@ export default function App() {
                 ) : (
                   <AdminDashboard
                     outreaches={outreaches}
-                    currentUser={currentUser}
+                    currentUser={currentUser!}
                     onOpenReportPrint={() => setIsPrintModalOpen(true)}
                     onNavigateToConverts={() => setActiveTab('converts')}
                     onNavigateToLog={() => setActiveTab('operations')}
@@ -276,7 +276,7 @@ export default function App() {
             ) : (
               <OperationsTable
                 outreaches={outreaches}
-                currentUser={currentUser}
+                currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
               />
             )}
@@ -296,7 +296,7 @@ export default function App() {
             ) : (
               <ConvertsDirectory
                 outreaches={outreaches}
-                currentUser={currentUser}
+                currentUser={currentUser!}
               />
             )}
           </>
@@ -313,7 +313,7 @@ export default function App() {
                 attemptedSection="Storage & Audit Logs"
               />
             ) : (
-              <AuditTrailView currentUser={currentUser} />
+              <AuditTrailView currentUser={currentUser!} />
             )}
           </>
         )}

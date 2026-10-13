@@ -281,7 +281,7 @@ export const PrintableReportModal: React.FC<Props> = ({
             </div>
             <div className="text-right">
               <div className="w-48 border-b border-slate-700 print:border-slate-400 mb-1" />
-              <p className="font-semibold text-white print:text-slate-900">{currentUser.name}</p>
+              <p className="font-semibold text-white print:text-slate-900">{currentUser ? currentUser.name : 'Executive Overseer'}</p>
               <p className="text-[11px] text-slate-400 print:text-slate-500">Authorized Overseer / Signatory</p>
             </div>
           </div>

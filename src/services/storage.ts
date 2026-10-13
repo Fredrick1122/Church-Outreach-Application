@@ -503,7 +503,7 @@ export function deleteOutreach(id: string): boolean {
   if (getIsOnline()) {
     fetch(`/api/outreaches/${id}`, {
       method: 'DELETE',
-      headers: { 'x-user-role': currentUser.role },
+      headers: { 'x-user-role': currentUser?.role || 'leader' },
     }).catch((err) => {
       console.warn('Delete on backend deferred:', err);
     });

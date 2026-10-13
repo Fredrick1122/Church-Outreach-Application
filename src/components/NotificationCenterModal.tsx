@@ -18,7 +18,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   notifications: LiveNotification[];
-  currentUser: UserProfile;
+  currentUser: UserProfile | null;
   presenceCount: number;
   onNavigateToTab: (tab: 'form' | 'operations' | 'dashboard') => void;
 }
