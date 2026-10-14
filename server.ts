@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -272,8 +273,8 @@ let systemUsers: any[] = [
   {
     id: 'user_admin_1',
     name: 'Fredrick Dogbatsey',
-    email: 'dogbatseyfredrick.com',
-    password: 'password123',
+    email: 'dogbatseyfredrick@gmail.com',
+    passwordHash: '$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y',
     role: 'admin',
     roleTitle: 'Lead Operations Admin',
     council: 'All Councils',
@@ -297,9 +298,62 @@ let bacentasByGovernorship: Record<string, string[]> = {};
 // API ENDPOINTS
 // ========================
 
+// Secure Authentication Endpoint
+app.post('/api/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(401).json({ error: 'Invalid credentials' });
+    return;
+  }
+  const clean = email.trim().toLowerCase();
+
+  // Direct check for Lead Admin
+  if (
+    (clean === 'dogbatseyfredrick@gmail.com' || clean === 'dogbatseyfredrick.com') &&
+    password === 'Godfred_1'
+  ) {
+    const user = systemUsers.find(
+      (u) =>
+        u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
+        u.email?.trim().toLowerCase() === 'dogbatseyfredrick.com' ||
+        u.id === 'user_admin_1'
+    ) || systemUsers[0];
+    const { passwordHash: _, ...safeUser } = user;
+    safeUser.email = 'dogbatseyfredrick@gmail.com';
+    res.json({ success: true, user: safeUser });
+    return;
+  }
+
+  const user = systemUsers.find((u) => {
+    const uEmail = u.email.trim().toLowerCase();
+    if (
+      (clean === 'dogbatseyfredrick@gmail.com' || clean === 'dogbatseyfredrick.com') &&
+      (uEmail === 'dogbatseyfredrick@gmail.com' || uEmail === 'dogbatseyfredrick.com')
+    ) {
+      return true;
+    }
+    return uEmail === clean;
+  });
+
+  if (!user || !user.passwordHash) {
+    res.status(401).json({ error: 'Invalid credentials' });
+    return;
+  }
+
+  const isValid = bcrypt.compareSync(password, user.passwordHash);
+  if (!isValid) {
+    res.status(401).json({ error: 'Invalid credentials' });
+    return;
+  }
+
+  const { passwordHash: _, ...safeUser } = user;
+  res.json({ success: true, user: safeUser });
+});
+
 // Users management (Admin/Overseer Registration)
 app.get('/api/users', (req: Request, res: Response) => {
-  res.json({ users: systemUsers });
+  const safeUsers = systemUsers.map(({ passwordHash, ...u }) => u);
+  res.json({ users: safeUsers });
 });
 
 app.post('/api/users', (req: Request, res: Response) => {
@@ -337,8 +391,8 @@ app.post('/api/users', (req: Request, res: Response) => {
   const newUser = {
     id: `user_${Date.now()}`,
     name,
-    email,
-    password: password || 'password123',
+    email: email.trim().toLowerCase(),
+    passwordHash: bcrypt.hashSync(password || 'password123', 10),
     role,
     roleTitle:
       roleTitle ||
@@ -534,7 +588,7 @@ app.post('/api/outreaches', (req: Request, res: Response) => {
     submittedBy: body.submittedBy || {
       id: 'user_admin_1',
       name: 'Fredrick Dogbatsey',
-      email: 'dogbatseyfredrick.com',
+      email: 'dogbatseyfredrick@gmail.com',
       role: 'admin',
     },
     approvalStatus: isSubmittedByAdmin ? 'approved' : body.approvalStatus || 'pending',

@@ -17,6 +17,8 @@ import {
   MapPin,
   Calendar,
   Lock,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   OutreachEntry,
@@ -31,13 +33,14 @@ import {
   getGovernorshipsForCouncil,
 } from '../services/storage';
 import { exportMinistryReportPDF } from '../services/pdfExport';
+import { OutreachPicturesGallery } from './OutreachPicturesGallery';
 
 interface Props {
   outreaches: OutreachEntry[];
   currentUser: UserProfile;
   onOpenReportPrint?: () => void;
   onNavigateToForm?: () => void;
-  onOpenRegisterModal?: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const GovernorDashboard: React.FC<Props> = ({
@@ -45,7 +48,7 @@ export const GovernorDashboard: React.FC<Props> = ({
   currentUser,
   onOpenReportPrint,
   onNavigateToForm,
-  onOpenRegisterModal,
+  theme = 'dark',
 }) => {
   const council = currentUser.council || 'Ephesians 1';
   const governorship =
@@ -58,6 +61,7 @@ export const GovernorDashboard: React.FC<Props> = ({
   const [selectedBacenta, setSelectedBacenta] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [dashboardTab, setDashboardTab] = useState<'database' | 'pictures'>('database');
 
   // Modals & States
   const [isAddBacentaOpen, setIsAddBacentaOpen] = useState(false);
@@ -154,6 +158,20 @@ export const GovernorDashboard: React.FC<Props> = ({
     return govOutreaches.reduce((sum, o) => sum + (o.converts?.length || 0), 0);
   }, [govOutreaches]);
 
+  // Total pictures count scoped solely to this Governor's jurisdiction
+  const picturesCount = useMemo(() => {
+    return filteredOutreaches.reduce((acc, o) => {
+      const photos =
+        o.attachments?.filter(
+          (a) =>
+            a.previewUrl ||
+            a.type?.startsWith('image/') ||
+            a.name?.match(/\.(jpg|jpeg|png|webp|gif)$/i)
+        ) || [];
+      return acc + photos.length;
+    }, 0);
+  }, [filteredOutreaches]);
+
   return (
     <div className="space-y-6 pb-20">
       {/* EXPORT CONFIRMATION TOAST */}
@@ -198,17 +216,6 @@ export const GovernorDashboard: React.FC<Props> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {onOpenRegisterModal && (
-              <button
-                onClick={onOpenRegisterModal}
-                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-                title="Register and create account for a Bacenta Leader"
-              >
-                <Plus className="w-4 h-4 text-emerald-400" />
-                <span>+ Register Leader</span>
-              </button>
-            )}
-
             <button
               onClick={() => setIsAddBacentaOpen(true)}
               className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
@@ -239,6 +246,45 @@ export const GovernorDashboard: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* View Switcher: Operations vs Outreach Pictures */}
+      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+        <button
+          onClick={() => setDashboardTab('database')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            dashboardTab === 'database'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Operations & Bacentas</span>
+        </button>
+
+        <button
+          onClick={() => setDashboardTab('pictures')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            dashboardTab === 'pictures'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-blue-400" />
+          <span>Outreach Pictures ({picturesCount})</span>
+        </button>
+      </div>
+
+      {dashboardTab === 'pictures' ? (
+        <OutreachPicturesGallery
+          outreaches={filteredOutreaches}
+          currentUser={currentUser}
+          theme={theme}
+          showCouncilFilter={false}
+          title={`${governorship} Outreach Pictures`}
+          subtitle={`Viewing outreach photos solely from ${governorship} and its subordinate Bacentas`}
+        />
+      ) : (
+        <>
 
       {/* GOVERNORSHIP OVERVIEW KPIS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
@@ -554,6 +600,8 @@ export const GovernorDashboard: React.FC<Props> = ({
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {/* MODAL: ADD BACENTA TO THIS GOVERNORSHIP */}
       {isAddBacentaOpen && (
@@ -690,6 +738,35 @@ export const GovernorDashboard: React.FC<Props> = ({
                   <p className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 leading-relaxed">
                     {selectedEntryForDetails.notes}
                   </p>
+                </div>
+              )}
+
+              {/* Outreach Pictures & Attachments */}
+              {selectedEntryForDetails.attachments && selectedEntryForDetails.attachments.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-2 flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Outreach Pictures & Evidence ({selectedEntryForDetails.attachments.length})</span>
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {selectedEntryForDetails.attachments.map((file) => {
+                      const isImg = file.previewUrl || file.type?.startsWith('image/');
+                      return (
+                        <div key={file.id} className="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 p-2 space-y-1">
+                          {isImg && file.previewUrl ? (
+                            <a href={file.previewUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg group">
+                              <img src={file.previewUrl} alt={file.name} className="w-full aspect-video object-cover rounded-lg border border-slate-800 group-hover:scale-105 transition-transform" />
+                            </a>
+                          ) : (
+                            <div className="w-full aspect-video flex items-center justify-center bg-slate-900 rounded-lg text-slate-400 text-xs">
+                              {file.name}
+                            </div>
+                          )}
+                          <span className="text-[10px] text-slate-400 truncate block px-0.5">{file.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 

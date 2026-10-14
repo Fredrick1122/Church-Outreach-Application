@@ -4,16 +4,16 @@ import {
   BarChart3,
   ListOrdered,
   Users,
-  Shield,
-  FileCheck2,
   Lock,
   Bell,
   LogOut,
   LogIn,
   Sparkles,
-  UserPlus,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { UserProfile, isGeneralOverseer, isCouncilOverseer, isGovernor } from '../types';
+import { AppLogo } from './AppLogo';
 
 export type NavTab = 'form' | 'dashboard' | 'operations' | 'converts' | 'audit';
 
@@ -27,7 +27,8 @@ interface Props {
   unreadNotificationsCount?: number;
   onOpenNotifications?: () => void;
   onOpenScriptureMotivation?: () => void;
-  onOpenRegisterModal?: () => void;
+  theme?: 'dark' | 'light';
+  onToggleTheme?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -39,7 +40,8 @@ export const Navbar: React.FC<Props> = ({
   unreadNotificationsCount = 0,
   onOpenNotifications,
   onOpenScriptureMotivation,
-  onOpenRegisterModal,
+  theme = 'dark',
+  onToggleTheme,
 }) => {
   const isGenOverseer = currentUser ? isGeneralOverseer(currentUser.role) : false;
   const isCnlOverseer = currentUser ? isCouncilOverseer(currentUser.role) : false;
@@ -59,38 +61,46 @@ export const Navbar: React.FC<Props> = ({
   return (
     <>
       {/* Strict Section 2 Top Bar Contract */}
-      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+      <header className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
+        theme === 'light'
+          ? 'bg-white/95 border-slate-200 text-slate-900 shadow-xs'
+          : 'bg-slate-900/95 border-slate-800 text-slate-100'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Zone 1: Single text element wordmark */}
           <div className="flex items-center gap-2.5 shrink-0">
             <button
               onClick={() => onSelectTab('form')}
-              className="text-lg sm:text-xl font-extrabold tracking-tight text-white whitespace-nowrap shrink-0 flex items-center gap-2 hover:opacity-90 transition-opacity"
+              className={`text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap shrink-0 flex items-center gap-2 hover:opacity-90 transition-opacity ${
+                theme === 'light' ? 'text-slate-900' : 'text-white'
+              }`}
             >
-              <span className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                EO
-              </span>
+              <AppLogo size="sm" allowUpload={true} theme={theme} />
               <span>Ephesians Outreach</span>
             </button>
           </div>
 
           {/* Zone 2: Navigation menus - SHOWN ONLY IF LOGGED IN AS A POSITION */}
           {currentUser && (
-            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
+            <nav className={`hidden md:flex items-center gap-6 text-sm font-semibold ${
+              theme === 'light' ? 'text-slate-600' : 'text-slate-300'
+            }`}>
               <button
                 onClick={() => onSelectTab('form')}
-                className={`hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                  activeTab === 'form' ? 'text-emerald-400 underline underline-offset-8 decoration-2 font-bold' : ''
+                className={`transition-colors whitespace-nowrap shrink-0 ${
+                  activeTab === 'form'
+                    ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
+                    : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
                 }`}
               >
                 Upload Form
               </button>
               <button
                 onClick={() => onSelectTab('dashboard')}
-                className={`hover:text-white transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                className={`transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'dashboard'
-                    ? 'text-emerald-400 underline underline-offset-8 decoration-2 font-bold'
-                    : ''
+                    ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
+                    : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
                 }`}
               >
                 <span>{dashboardLabel}</span>
@@ -98,10 +108,10 @@ export const Navbar: React.FC<Props> = ({
               </button>
               <button
                 onClick={() => onSelectTab('operations')}
-                className={`hover:text-white transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                className={`transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'operations'
-                    ? 'text-emerald-400 underline underline-offset-8 decoration-2 font-bold'
-                    : ''
+                    ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
+                    : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
                 }`}
               >
                 <span>Operations Log</span>
@@ -109,10 +119,10 @@ export const Navbar: React.FC<Props> = ({
               </button>
               <button
                 onClick={() => onSelectTab('converts')}
-                className={`hover:text-white transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                className={`transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'converts'
-                    ? 'text-emerald-400 underline underline-offset-8 decoration-2 font-bold'
-                    : ''
+                    ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
+                    : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
                 }`}
               >
                 <span>Converts CRM</span>
@@ -121,10 +131,10 @@ export const Navbar: React.FC<Props> = ({
               {hasAuditAccess && (
                 <button
                   onClick={() => onSelectTab('audit')}
-                  className={`hover:text-white transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                  className={`transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                     activeTab === 'audit'
-                      ? 'text-emerald-400 underline underline-offset-8 decoration-2 font-bold'
-                      : ''
+                      ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
+                      : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
                   }`}
                 >
                   <span>Storage & Audit</span>
@@ -133,13 +143,34 @@ export const Navbar: React.FC<Props> = ({
             </nav>
           )}
 
-          {/* Zone 3: Actions, Motivation, Account Space & Login */}
+          {/* Zone 3: Actions, Motivation, Theme Toggle & Leadership Login */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* White / Dark Mode Toggle */}
+            {onToggleTheme && (
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={`p-2 rounded-xl border transition-colors shrink-0 flex items-center justify-center cursor-pointer ${
+                  theme === 'light'
+                    ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'border-slate-700/80 bg-slate-800/80 hover:bg-slate-800 text-amber-300'
+                }`}
+                title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to White (Light) Mode'}
+                aria-label="Toggle theme mode"
+              >
+                {theme === 'light' ? (
+                  <Moon className="w-4 h-4 text-slate-700" />
+                ) : (
+                  <Sun className="w-4 h-4 text-amber-300" />
+                )}
+              </button>
+            )}
+
             {/* AI Scripture Motivation Pop-up Trigger */}
             {onOpenScriptureMotivation && (
               <button
                 onClick={onOpenScriptureMotivation}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer"
                 title="AI Pop-up Scripture Motivation on Evangelism & Soul Winning"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
@@ -150,23 +181,14 @@ export const Navbar: React.FC<Props> = ({
 
             {currentUser ? (
               <>
-                {/* Create Account Button for General Overseer, Overseer, Governor, Admin */}
-                {onOpenRegisterModal && (
-                  <button
-                    onClick={onOpenRegisterModal}
-                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-emerald-400 hover:text-emerald-300 transition-colors text-xs font-semibold shrink-0"
-                    title="Create / Register Accounts for Others"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">+ Register Account</span>
-                    <span className="sm:hidden">+ User</span>
-                  </button>
-                )}
-
                 {/* Real-time Notification Center Bell */}
                 <button
                   onClick={onOpenNotifications}
-                  className="relative p-2 rounded-xl border border-slate-700/80 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 transition-colors text-slate-300 hover:text-white shrink-0"
+                  className={`relative p-2 rounded-xl border transition-colors shrink-0 cursor-pointer ${
+                    theme === 'light'
+                      ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      : 'border-slate-700/80 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white'
+                  }`}
                   title="Real-time Ministry Alerts & Objectives"
                 >
                   <Bell className="w-4 h-4" />
@@ -182,7 +204,11 @@ export const Navbar: React.FC<Props> = ({
 
                 <button
                   onClick={onOpenAccountSwitcher}
-                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-slate-700/80 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 transition-colors shrink-0"
+                  className={`flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl border transition-colors shrink-0 cursor-pointer ${
+                    theme === 'light'
+                      ? 'border-slate-300 bg-slate-100 hover:bg-slate-200'
+                      : 'border-slate-700/80 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800'
+                  }`}
                   title="Active leadership session"
                 >
                   <div
@@ -191,10 +217,12 @@ export const Navbar: React.FC<Props> = ({
                     {currentUser.avatarInitials}
                   </div>
                   <div className="hidden sm:block text-left text-xs leading-tight">
-                    <span className="font-semibold text-slate-100 block truncate max-w-[140px]">
+                    <span className={`font-semibold block truncate max-w-[140px] ${
+                      theme === 'light' ? 'text-slate-900' : 'text-slate-100'
+                    }`}>
                       {currentUser.name}
                     </span>
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block truncate max-w-[150px]">
+                    <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider block truncate max-w-[150px]">
                       {isGenOverseer
                         ? 'General Overseer'
                         : isCnlOverseer
@@ -209,7 +237,7 @@ export const Navbar: React.FC<Props> = ({
                 {onLogout && (
                   <button
                     onClick={onLogout}
-                    className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-slate-700/80 hover:border-rose-700 bg-slate-800/60 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 transition-colors flex items-center gap-1.5 text-xs font-semibold"
+                    className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-rose-800/50 hover:border-rose-700 bg-rose-950/30 hover:bg-rose-950/60 text-rose-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
                     title="Log Out to Public Outreach Upload Interface"
                   >
                     <LogOut className="w-3.5 h-3.5" />
@@ -218,13 +246,14 @@ export const Navbar: React.FC<Props> = ({
                 )}
               </>
             ) : (
-              /* Public / Unauthenticated state: prominent Leadership Login button */
+              /* Public / Unauthenticated state: prominent Login button */
               <button
+                type="button"
                 onClick={onOpenAccountSwitcher}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950 transition-all shrink-0"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950 transition-all shrink-0 cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>Leadership Login</span>
+                <span>Login</span>
               </button>
             )}
           </div>

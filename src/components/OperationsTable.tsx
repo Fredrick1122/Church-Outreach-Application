@@ -435,21 +435,35 @@ export const OperationsTable: React.FC<Props> = ({
                                   <FileText className="w-3.5 h-3.5 text-blue-400" />
                                   <span>Attached Files ({row.attachments?.length || 0})</span>
                                 </h4>
-                                <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 max-h-36 overflow-y-auto text-xs space-y-2">
+                                <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs space-y-2">
                                   {row.attachments && row.attachments.length > 0 ? (
-                                    row.attachments.map((file) => (
-                                      <div
-                                        key={file.id}
-                                        className="flex items-center justify-between text-[11px] p-1.5 bg-slate-950 border border-slate-800/80 rounded-lg"
-                                      >
-                                        <span className="font-medium text-slate-200 truncate max-w-[140px]">
-                                          {file.name}
-                                        </span>
-                                        <span className="text-slate-400 shrink-0 font-mono">
-                                          {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                        </span>
-                                      </div>
-                                    ))
+                                    <div className="space-y-1.5">
+                                      {row.attachments.map((file) => {
+                                        const isImg = file.previewUrl || file.type?.startsWith('image/');
+                                        return (
+                                          <div
+                                            key={file.id}
+                                            className="flex items-center justify-between text-[11px] p-2 bg-slate-950 border border-slate-800/80 rounded-lg gap-2"
+                                          >
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                              {isImg && file.previewUrl ? (
+                                                <a href={file.previewUrl} target="_blank" rel="noreferrer" className="shrink-0">
+                                                  <img src={file.previewUrl} alt={file.name} className="w-8 h-8 rounded object-cover border border-slate-700" />
+                                                </a>
+                                              ) : (
+                                                <FileText className="w-4 h-4 text-blue-400 shrink-0" />
+                                              )}
+                                              <span className="font-medium text-slate-200 truncate max-w-[140px]">
+                                                {file.name}
+                                              </span>
+                                            </div>
+                                            <span className="text-slate-400 shrink-0 font-mono text-[10px]">
+                                              {(file.size / (1024 * 1024)).toFixed(2)} MB {isImg && '· Photo'}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
                                   ) : (
                                     <p className="text-slate-500 italic">No files attached</p>
                                   )}

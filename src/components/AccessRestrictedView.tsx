@@ -26,7 +26,7 @@ export const AccessRestrictedView: React.FC<Props> = ({
         </div>
 
         <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-400 bg-rose-950/50 border border-rose-800/50 rounded-full mb-3">
-          {currentUser ? 'Role Authorization Required' : 'Leadership Login Required'}
+          {currentUser ? 'Role Authorization Required' : 'Login Required'}
         </span>
 
         <h2 className="text-2xl font-extrabold text-white tracking-tight">
@@ -37,7 +37,7 @@ export const AccessRestrictedView: React.FC<Props> = ({
           Access to the <strong>{attemptedSection}</strong>, oversight dashboards, and master database is strictly restricted.
           {currentUser
             ? ` Your current account does not have sufficient oversight privileges for this section.`
-            : ` For a user to get access anywhere, you must log into your leadership account as General Overseer, Council Overseer, or Governor.`}
+            : ` To access oversight dashboards and records, please log in with your authorized credentials.`}
         </p>
 
         {/* Current user badge */}
@@ -69,7 +69,7 @@ export const AccessRestrictedView: React.FC<Props> = ({
             className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
           >
             <KeyRound className="w-4 h-4" />
-            <span>{currentUser ? 'Switch Leadership Account' : 'Log In to Leadership Account'}</span>
+            <span>{currentUser ? 'Switch Account' : 'Log In'}</span>
           </button>
 
           <button

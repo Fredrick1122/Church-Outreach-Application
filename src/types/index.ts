@@ -11,6 +11,7 @@ export interface UserProfile {
   name: string;
   email: string;
   password?: string;
+  passwordHash?: string;
   role: UserRole;
   roleTitle: string;
   council: string; // 'All Councils' | 'Ephesians 1' to 'Ephesians 5'

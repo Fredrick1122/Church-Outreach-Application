@@ -9,6 +9,7 @@ import {
   isGovernor,
   isLeader,
 } from '../types';
+import bcrypt from 'bcryptjs';
 import {
   INITIAL_OUTREACHES,
   SYSTEM_USERS,
@@ -165,23 +166,41 @@ export function getUsers(): UserProfile[] {
     try {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Filter out all deleted mock samples
-        const cleaned = parsed.filter(
-          (u) =>
-            !MOCK_USER_EMAILS.has(u.email?.trim().toLowerCase()) &&
-            !u.id?.startsWith('user_co_') &&
-            !u.id?.startsWith('user_gov_') &&
-            !u.id?.startsWith('user_go_') &&
-            !u.id?.startsWith('user_leader_')
-        );
+        // Filter out all deleted mock samples and ensure passwords are only stored as hashes
+        const cleaned: UserProfile[] = parsed
+          .filter(
+            (u: any) =>
+              !MOCK_USER_EMAILS.has(u.email?.trim().toLowerCase()) &&
+              !u.id?.startsWith('user_co_') &&
+              !u.id?.startsWith('user_gov_') &&
+              !u.id?.startsWith('user_go_') &&
+              !u.id?.startsWith('user_leader_')
+          )
+          .map((u: any) => {
+            // If user only had plain password, upgrade to bcrypt hash immediately
+            if (u.password && !u.passwordHash) {
+              u.passwordHash = bcrypt.hashSync(u.password, 10);
+            }
+            delete u.password;
+            return u;
+          });
 
-        // Ensure Fredrick Dogbatsey is present
-        const hasAdmin = cleaned.some(
+        // Ensure Fredrick Dogbatsey is present with valid email and bcrypt hash for Godfred_1
+        const adminIndex = cleaned.findIndex(
           (u) =>
+            u.id === 'user_admin_1' ||
             u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
             u.email?.trim().toLowerCase() === 'dogbatseyfredrick.com'
         );
-        if (!hasAdmin) {
+        if (adminIndex >= 0) {
+          cleaned[adminIndex].email = 'dogbatseyfredrick@gmail.com';
+          cleaned[adminIndex].name = 'Fredrick Dogbatsey';
+          cleaned[adminIndex].role = 'admin';
+          // Ensure hash matches Godfred_1
+          if (!bcrypt.compareSync('Godfred_1', cleaned[adminIndex].passwordHash || '')) {
+            cleaned[adminIndex].passwordHash = SYSTEM_USERS[0].passwordHash;
+          }
+        } else {
           cleaned.unshift(SYSTEM_USERS[0]);
         }
 
@@ -205,6 +224,11 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
     throw new Error(`A user with email ${newUser.email} is already registered.`);
   }
 
+  // Securely hash password with bcryptjs before persisting
+  const plainPassword = newUser.password || 'password123';
+  newUser.passwordHash = bcrypt.hashSync(plainPassword, 10);
+  delete (newUser as any).password;
+
   const updated = [...allUsers, newUser];
   localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updated));
 
@@ -226,15 +250,38 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
   return { success: true, user: newUser };
 }
 
-export function loginUser(emailInput: string, password?: string): UserProfile {
+export function loginUser(emailInput: string, passwordInput?: string): UserProfile {
+  if (!emailInput?.trim() || !passwordInput) {
+    throw new Error('Invalid credentials');
+  }
+
   const allUsers = getUsers();
   const cleanInput = emailInput.trim().toLowerCase();
 
+  // Direct check for Lead Admin Fredrick Dogbatsey
+  if (
+    (cleanInput === 'dogbatseyfredrick@gmail.com' || cleanInput === 'dogbatseyfredrick.com') &&
+    passwordInput === 'Godfred_1'
+  ) {
+    let leadAdmin = allUsers.find(
+      (u) =>
+        u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
+        u.email?.trim().toLowerCase() === 'dogbatseyfredrick.com' ||
+        u.id === 'user_admin_1'
+    );
+    if (!leadAdmin) {
+      leadAdmin = { ...SYSTEM_USERS[0] };
+    }
+    leadAdmin.email = 'dogbatseyfredrick@gmail.com';
+    leadAdmin.passwordHash = SYSTEM_USERS[0].passwordHash;
+    setCurrentUser(leadAdmin);
+    return leadAdmin;
+  }
+
   const user = allUsers.find((u) => {
     const uEmail = u.email.trim().toLowerCase();
-    // Allow 'dogbatseyfredrick.com' or 'dogbatseyfredrick@gmail.com'
     if (
-      cleanInput === 'dogbatseyfredrick.com' &&
+      (cleanInput === 'dogbatseyfredrick@gmail.com' || cleanInput === 'dogbatseyfredrick.com') &&
       (uEmail === 'dogbatseyfredrick@gmail.com' || uEmail === 'dogbatseyfredrick.com')
     ) {
       return true;
@@ -242,13 +289,13 @@ export function loginUser(emailInput: string, password?: string): UserProfile {
     return uEmail === cleanInput;
   });
 
-  if (!user) {
-    throw new Error(
-      'Account not found. Use dogbatseyfredrick.com to log in as Lead Admin.'
-    );
+  if (!user || !user.passwordHash) {
+    throw new Error('Invalid credentials');
   }
-  if (password && user.password && user.password !== password) {
-    throw new Error('Invalid password. Please check your credentials.');
+
+  const isPasswordValid = bcrypt.compareSync(passwordInput, user.passwordHash);
+  if (!isPasswordValid) {
+    throw new Error('Invalid credentials');
   }
 
   setCurrentUser(user);

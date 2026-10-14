@@ -28,7 +28,6 @@ import {
   getLiveNotifications,
 } from './services/realtime';
 import { Navbar, NavTab } from './components/Navbar';
-import { OfflineStatusBar } from './components/OfflineStatusBar';
 import { FieldEntryForm } from './components/FieldEntryForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { OverseerDashboard } from './components/OverseerDashboard';
@@ -63,6 +62,34 @@ export default function App() {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isScriptureModalOpen, setIsScriptureModalOpen] = useState(false);
+
+  // Theme State: White (Light) or Dark Mode
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('ephesians_theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
+
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('ephesians_theme', next);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      document.body.classList.remove('dark');
+      document.body.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+      document.body.classList.remove('light');
+      document.body.classList.add('dark');
+    }
+  }, [theme]);
 
   // Initialize and keep Real-Time WebSocket in sync with active user
   useEffect(() => {
@@ -137,12 +164,11 @@ export default function App() {
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+      theme === 'light' ? 'bg-slate-100 text-slate-900' : 'bg-slate-950 text-slate-100'
+    }`}>
       {/* Real-time Floating Notification Push Toasts */}
       <LiveNotificationToasts onNavigateToTab={(tab) => handleSelectTab(tab)} />
-
-      {/* Network & Offline Status Banner */}
-      <OfflineStatusBar onSyncComplete={() => setOutreaches(getOutreachesForUser(currentUser))} />
 
       {/* Top Navigation Bar adhering to Top Bar Contract */}
       <Navbar
@@ -155,7 +181,8 @@ export default function App() {
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationModalOpen(true)}
         onOpenScriptureMotivation={() => setIsScriptureModalOpen(true)}
-        onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Container Viewport */}
@@ -187,8 +214,8 @@ export default function App() {
                 outreaches={outreaches}
                 currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
-                onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                theme={theme}
               />
             ) : isCouncilOverseerUser ? (
               /* COUNCIL OVERSEER DASHBOARD: ACCESS TO THEIR COUNCIL SOLELY */
@@ -196,8 +223,8 @@ export default function App() {
                 outreaches={outreaches}
                 currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
-                onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                theme={theme}
               />
             ) : isGeneralOverseerUser ? (
               /* GENERAL OVERSEER DASHBOARD: ACCESS ACROSS BOARD TO ALL COUNCILS */
@@ -207,6 +234,7 @@ export default function App() {
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                theme={theme}
               />
             ) : (
               /* ADMIN: FULL ACCESS WITH SWITCHER BETWEEN BACENTA HIERARCHY & ANALYTICS CHARTS */
@@ -242,7 +270,7 @@ export default function App() {
                     onClick={() => setIsRegisterModalOpen(true)}
                     className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors"
                   >
-                    + Register Overseer / Governor
+                    + Register Leadership Account
                   </button>
                 </div>
 
@@ -253,6 +281,7 @@ export default function App() {
                     onOpenReportPrint={() => setIsPrintModalOpen(true)}
                     onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                     onNavigateToForm={() => setActiveTab('form')}
+                    theme={theme}
                   />
                 ) : (
                   <AdminDashboard
@@ -262,6 +291,8 @@ export default function App() {
                     onNavigateToConverts={() => setActiveTab('converts')}
                     onNavigateToLog={() => setActiveTab('operations')}
                     onNavigateToForm={() => setActiveTab('form')}
+                    onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+                    theme={theme}
                   />
                 )}
               </div>
@@ -344,7 +375,7 @@ export default function App() {
         onClose={() => setIsAccountModalOpen(false)}
         currentUser={currentUser}
         onSelectUser={handleSelectUser}
-        onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* Admin User Registration Modal (Register Overseer / Governor) */}

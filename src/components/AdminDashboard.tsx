@@ -17,8 +17,11 @@ import {
   Filter,
   RefreshCw,
   PhoneCall,
-  Target,
   UserCheck,
+  Camera,
+  UserPlus,
+  Image as ImageIcon,
+  Target,
 } from 'lucide-react';
 import {
   OutreachEntry,
@@ -41,6 +44,7 @@ import {
   approveOutreach,
 } from '../services/realtime';
 import { CreateObjectiveModal } from './CreateObjectiveModal';
+import { OutreachPicturesGallery } from './OutreachPicturesGallery';
 
 interface Props {
   outreaches: OutreachEntry[];
@@ -49,6 +53,8 @@ interface Props {
   onNavigateToConverts: () => void;
   onNavigateToLog: () => void;
   onNavigateToForm?: () => void;
+  onOpenRegisterModal?: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const AdminDashboard: React.FC<Props> = ({
@@ -58,7 +64,12 @@ export const AdminDashboard: React.FC<Props> = ({
   onNavigateToConverts,
   onNavigateToLog,
   onNavigateToForm,
+  onOpenRegisterModal,
+  theme = 'dark',
 }) => {
+  // Views: Metrics vs Outreach Pictures
+  const [dashboardTab, setDashboardTab] = useState<'metrics' | 'pictures'>('metrics');
+
   // Filters
   const [dateFilter, setDateFilter] = useState<'all' | '7days' | '30days'>('all');
   const [councilFilter, setCouncilFilter] = useState<string>('all');
@@ -69,6 +80,20 @@ export const AdminDashboard: React.FC<Props> = ({
   const [isObjectiveModalOpen, setIsObjectiveModalOpen] = useState(false);
   const [objectives, setObjectives] = useState<FieldObjective[]>(getFieldObjectives);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  // Total pictures across all outreaches
+  const picturesCount = useMemo(() => {
+    return outreaches.reduce((acc, o) => {
+      const photos =
+        o.attachments?.filter(
+          (a) =>
+            a.previewUrl ||
+            a.type?.startsWith('image/') ||
+            a.name?.match(/\.(jpg|jpeg|png|webp|gif)$/i)
+        ) || [];
+      return acc + photos.length;
+    }, 0);
+  }, [outreaches]);
 
   useEffect(() => {
     const unsub = subscribeToObjectives((updated) => {
@@ -306,6 +331,17 @@ export const AdminDashboard: React.FC<Props> = ({
 
         {/* Action Buttons: Export & Official Print */}
         <div className="flex items-center gap-2 flex-wrap">
+          {onOpenRegisterModal && (
+            <button
+              onClick={onOpenRegisterModal}
+              className="px-3.5 py-2 text-xs font-semibold text-emerald-200 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+              title="Register new Overseer, Governor, or Bacenta Leader (General Overseer Authority)"
+            >
+              <UserPlus className="w-3.5 h-3.5 text-emerald-400" />
+              <span>+ Register Leadership</span>
+            </button>
+          )}
+
           <button
             onClick={() => setIsObjectiveModalOpen(true)}
             className="px-3.5 py-2 text-xs font-semibold text-amber-200 bg-amber-950/80 hover:bg-amber-900/80 border border-amber-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
@@ -353,6 +389,45 @@ export const AdminDashboard: React.FC<Props> = ({
           </button>
         </div>
       </div>
+
+      {/* View Switcher: Metrics & Operations vs Outreach Pictures */}
+      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+        <button
+          onClick={() => setDashboardTab('metrics')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            dashboardTab === 'metrics'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span>Metrics & Analytics</span>
+        </button>
+
+        <button
+          onClick={() => setDashboardTab('pictures')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            dashboardTab === 'pictures'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-emerald-400" />
+          <span>Outreach Pictures ({picturesCount})</span>
+        </button>
+      </div>
+
+      {dashboardTab === 'pictures' ? (
+        <OutreachPicturesGallery
+          outreaches={outreaches}
+          currentUser={currentUser}
+          theme={theme}
+          showCouncilFilter={true}
+          title="All Councils Outreach Picture Vault"
+          subtitle="General Overseer view across all 5 Councils, Governorships, and Bacentas"
+        />
+      ) : (
+        <>
 
       {/* Zero State Notice Banner */}
       {outreaches.length === 0 && (
@@ -931,6 +1006,8 @@ export const AdminDashboard: React.FC<Props> = ({
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* ALERT THRESHOLDS CONFIG DRAWER */}
       {showAlertConfig && (

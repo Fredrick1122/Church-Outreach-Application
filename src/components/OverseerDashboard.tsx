@@ -24,6 +24,8 @@ import {
   X,
   Phone,
   Clock,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   OutreachEntry,
@@ -50,6 +52,7 @@ import {
 import { exportMinistryReportPDF } from '../services/pdfExport';
 import { approveOutreach, subscribeToObjectives, getFieldObjectives } from '../services/realtime';
 import { CreateObjectiveModal } from './CreateObjectiveModal';
+import { OutreachPicturesGallery } from './OutreachPicturesGallery';
 
 interface Props {
   outreaches: OutreachEntry[];
@@ -57,6 +60,7 @@ interface Props {
   onOpenReportPrint?: () => void;
   onOpenRegisterModal?: () => void;
   onNavigateToForm?: () => void;
+  theme?: 'dark' | 'light';
 }
 
 export const OverseerDashboard: React.FC<Props> = ({
@@ -65,6 +69,7 @@ export const OverseerDashboard: React.FC<Props> = ({
   onOpenReportPrint,
   onOpenRegisterModal,
   onNavigateToForm,
+  theme = 'dark',
 }) => {
   const councils = getCouncils();
   const allUsers = getUsers();
@@ -205,6 +210,23 @@ export const OverseerDashboard: React.FC<Props> = ({
       return true;
     });
   }, [outreaches, effectiveCouncil, selectedGovernorship, selectedBacenta, statusFilter, typeFilter, searchQuery]);
+
+  // View state: database vs outreach pictures
+  const [dashboardTab, setDashboardTab] = useState<'database' | 'pictures'>('database');
+
+  // Total pictures count scoped solely to this overseer's council
+  const picturesCount = useMemo(() => {
+    return filteredOutreaches.reduce((acc, o) => {
+      const photos =
+        o.attachments?.filter(
+          (a) =>
+            a.previewUrl ||
+            a.type?.startsWith('image/') ||
+            a.name?.match(/\.(jpg|jpeg|png|webp|gif)$/i)
+        ) || [];
+      return acc + photos.length;
+    }, 0);
+  }, [filteredOutreaches]);
 
   // Overall Statistics scoped to Council Overseer or General Overseer
   const totalSoulsWon = useMemo(() => scopeOutreaches.reduce((sum, o) => sum + (o.soulsWonCount || 0), 0), [scopeOutreaches]);
@@ -354,11 +376,11 @@ export const OverseerDashboard: React.FC<Props> = ({
 
           {/* Action Ribbon */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {onOpenRegisterModal && (
+            {isGeneralOverseer(currentUser.role) && onOpenRegisterModal && (
               <button
                 onClick={onOpenRegisterModal}
                 className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs"
-                title="Register new Overseer or Governorship Pastor"
+                title="Register new Overseer or Governorship Pastor (General Overseer Authority)"
               >
                 <UserPlus className="w-4 h-4 text-emerald-400" />
                 <span>+ Register User</span>
@@ -394,6 +416,45 @@ export const OverseerDashboard: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* View Switcher: Council Database vs Outreach Pictures */}
+      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+        <button
+          onClick={() => setDashboardTab('database')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            dashboardTab === 'database'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Council Database & Metrics</span>
+        </button>
+
+        <button
+          onClick={() => setDashboardTab('pictures')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            dashboardTab === 'pictures'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-emerald-400" />
+          <span>Outreach Pictures ({picturesCount})</span>
+        </button>
+      </div>
+
+      {dashboardTab === 'pictures' ? (
+        <OutreachPicturesGallery
+          outreaches={filteredOutreaches}
+          currentUser={currentUser}
+          theme={theme}
+          showCouncilFilter={false}
+          title={`${effectiveCouncil} Outreach Pictures Vault`}
+          subtitle={`Viewing photos solely from ${effectiveCouncil} field operations`}
+        />
+      ) : (
+        <>
 
       {/* EXECUTIVE KPI BANNER */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
@@ -1004,6 +1065,8 @@ export const OverseerDashboard: React.FC<Props> = ({
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {/* MODAL: ADD BACENTA UNDER GOVERNORSHIP */}
       {isAddBacentaOpen && (
@@ -1189,6 +1252,35 @@ export const OverseerDashboard: React.FC<Props> = ({
                   <p className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 leading-relaxed">
                     {selectedEntryForDetails.notes}
                   </p>
+                </div>
+              )}
+
+              {/* Outreach Pictures & Attachments */}
+              {selectedEntryForDetails.attachments && selectedEntryForDetails.attachments.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-2 flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Outreach Pictures & Evidence ({selectedEntryForDetails.attachments.length})</span>
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {selectedEntryForDetails.attachments.map((file) => {
+                      const isImg = file.previewUrl || file.type?.startsWith('image/');
+                      return (
+                        <div key={file.id} className="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 p-2 space-y-1">
+                          {isImg && file.previewUrl ? (
+                            <a href={file.previewUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg group">
+                              <img src={file.previewUrl} alt={file.name} className="w-full aspect-video object-cover rounded-lg border border-slate-800 group-hover:scale-105 transition-transform" />
+                            </a>
+                          ) : (
+                            <div className="w-full aspect-video flex items-center justify-center bg-slate-900 rounded-lg text-slate-400 text-xs">
+                              {file.name}
+                            </div>
+                          )}
+                          <span className="text-[10px] text-slate-400 truncate block px-0.5">{file.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 

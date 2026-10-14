@@ -23,6 +23,8 @@ import {
   FileUp,
   Target,
   KeyRound,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -177,30 +179,86 @@ export const FieldEntryForm: React.FC<Props> = ({
     }
   };
 
-  // File Upload handling (Max 10MB)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Helper to compress image to Base64 Data URL for persistent storage & viewing
+  const fileToDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith('image/')) {
+        resolve('');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawUrl = e.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const maxWidth = 1200;
+          const maxHeight = 1200;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+          } else {
+            resolve(rawUrl);
+          }
+        };
+        img.onerror = () => resolve(rawUrl);
+        img.src = rawUrl;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // File Upload handling (Images, Sheets, PDFs - Max 15MB)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setFileError(null);
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
-    const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit as in original form
+    const maxSizeBytes = 15 * 1024 * 1024;
+    const newItems: AttachmentInfo[] = [];
 
-    if (file.size > maxSizeBytes) {
-      setFileError('File exceeds maximum size of 10 MB. Please upload a smaller document.');
-      return;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > maxSizeBytes) {
+        setFileError(`File ${file.name} exceeds maximum limit of 15 MB.`);
+        continue;
+      }
+
+      let dataUrl: string | undefined = undefined;
+      if (file.type.startsWith('image/')) {
+        dataUrl = await fileToDataUrl(file);
+      }
+
+      newItems.push({
+        id: `att_${Date.now()}_${i}`,
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+        uploadedAt: new Date().toISOString(),
+        previewUrl: dataUrl || (file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined),
+      });
     }
 
-    const newAttachment: AttachmentInfo = {
-      id: `att_${Date.now()}`,
-      name: file.name,
-      size: file.size,
-      type: file.type || 'application/octet-stream',
-      uploadedAt: new Date().toISOString(),
-      previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-    };
-
-    setAttachments((prev) => [...prev, newAttachment]);
+    if (newItems.length > 0) {
+      setAttachments((prev) => [...prev, ...newItems]);
+    }
+    // reset input
+    e.target.value = '';
   };
 
   const removeAttachment = (id: string) => {
@@ -369,7 +427,7 @@ export const FieldEntryForm: React.FC<Props> = ({
                   className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm self-start sm:self-auto"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  <span>Leadership Login / Select Position</span>
+                  <span>Login</span>
                 </button>
               </div>
             )}
@@ -836,17 +894,20 @@ export const FieldEntryForm: React.FC<Props> = ({
         <div className="bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-sm font-bold text-slate-100">
-                Attach Converts Details
+              <label className="block text-sm font-bold text-slate-100 flex items-center gap-2">
+                <span>Attach Outreach Pictures & Converts Documents</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-800 text-[10px] text-emerald-400 font-semibold">
+                  Photo Evidence
+                </span>
               </label>
               <p className="text-xs text-slate-400">
-                Upload 1 supported file. Max 10 MB. Or log souls digitally below for instant follow-up CRM.
+                Upload field photos (JPG, PNG, WebP) or soul roster sheets (PDF, Excel). Photos will be viewable by your General Overseer, Council Overseer, and Governor.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowConvertModal(true)}
-              className="text-xs font-semibold px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors flex items-center gap-1 shadow-sm"
+              className="text-xs font-semibold px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors flex items-center gap-1 shadow-sm shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ Add Convert</span>
@@ -854,11 +915,12 @@ export const FieldEntryForm: React.FC<Props> = ({
           </div>
 
           {/* File Upload Box */}
-          <div className="border-2 border-dashed border-slate-800 hover:border-slate-700 rounded-xl p-4 text-center bg-slate-950/40 transition-colors">
+          <div className="border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-xl p-4 text-center bg-slate-950/40 transition-colors">
             <input
               type="file"
               id="file-upload"
-              accept=".pdf,.csv,.xlsx,.xls,.jpg,.jpeg,.png"
+              accept=".pdf,.csv,.xlsx,.xls,.jpg,.jpeg,.png,.webp"
+              multiple
               onChange={handleFileUpload}
               className="hidden"
             />
@@ -866,13 +928,13 @@ export const FieldEntryForm: React.FC<Props> = ({
               htmlFor="file-upload"
               className="cursor-pointer flex flex-col items-center justify-center gap-2"
             >
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                <FileUp className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shadow-sm">
+                <Camera className="w-5 h-5" />
               </div>
               <div className="text-xs text-slate-300">
-                <span className="font-semibold text-emerald-400 hover:underline">Click to upload</span> or drag and drop
+                <span className="font-semibold text-emerald-400 hover:underline">Click to upload pictures & files</span> or drag & drop
               </div>
-              <p className="text-[11px] text-slate-400">PDF, Excel, CSV, or Photo sheet (Max 10 MB)</p>
+              <p className="text-[11px] text-slate-400">Outreach Photos (JPG, PNG, WebP), PDFs, Excel, CSV (Max 15 MB)</p>
             </label>
           </div>
 
@@ -883,31 +945,54 @@ export const FieldEntryForm: React.FC<Props> = ({
             </div>
           )}
 
-          {/* Uploaded File List */}
+          {/* Uploaded File List with Visual Photo Previews */}
           {attachments.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-400">Uploaded File:</p>
-              {attachments.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs"
-                >
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <FileText className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="font-medium text-slate-200 truncate">{file.name}</span>
-                    <span className="text-slate-400 shrink-0">
-                      ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(file.id)}
-                    className="text-slate-400 hover:text-rose-400 p-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+              <p className="text-xs font-semibold text-slate-400 flex items-center justify-between">
+                <span>Uploaded Pictures & Files ({attachments.length}):</span>
+                <span className="text-[11px] text-emerald-400">Ready to save with outreach</span>
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {attachments.map((file) => {
+                  const isImage = file.previewUrl || file.type?.startsWith('image/');
+                  return (
+                    <div
+                      key={file.id}
+                      className="flex items-center justify-between p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs gap-2 overflow-hidden"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        {isImage && file.previewUrl ? (
+                          <img
+                            src={file.previewUrl}
+                            alt={file.name}
+                            className="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-700"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                        )}
+                        <div className="overflow-hidden">
+                          <span className="font-medium text-slate-200 truncate block max-w-[130px]">
+                            {file.name}
+                          </span>
+                          <span className="text-slate-400 text-[10px] block">
+                            {(file.size / (1024 * 1024)).toFixed(2)} MB {isImage && '· Photo'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(file.id)}
+                        className="text-slate-400 hover:text-rose-400 p-1.5 transition-colors shrink-0"
+                        title="Remove file"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 

@@ -6,8 +6,8 @@ export const SYSTEM_USERS: UserProfile[] = [
   {
     id: 'user_admin_1',
     name: 'Fredrick Dogbatsey',
-    email: 'dogbatseyfredrick.com',
-    password: 'password123',
+    email: 'dogbatseyfredrick@gmail.com',
+    passwordHash: '$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y',
     role: 'admin',
     roleTitle: 'Lead Operations Admin',
     council: 'All Councils',
