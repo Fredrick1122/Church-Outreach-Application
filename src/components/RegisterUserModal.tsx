@@ -85,7 +85,10 @@ export const RegisterUserModal: React.FC<Props> = ({
 
   const handleRoleChange = (newRole: UserRole) => {
     setRole(newRole);
-    if (newRole === 'general_overseer') {
+    if (newRole === 'admin') {
+      setRoleTitle('Admin');
+      setCouncil('All Councils');
+    } else if (newRole === 'general_overseer') {
       setRoleTitle('General Overseer (All Councils)');
       setCouncil('All Councils');
     } else if (newRole === 'council_overseer' || newRole === 'overseer') {
@@ -158,7 +161,7 @@ export const RegisterUserModal: React.FC<Props> = ({
         password: password.trim() || 'password123',
         role,
         roleTitle: roleTitle.trim() || `${role.toUpperCase()}`,
-        council: role === 'general_overseer' ? 'All Councils' : council,
+        council: role === 'admin' || role === 'general_overseer' ? 'All Councils' : council,
         governorship: role === 'governor' || role === 'leader' ? governorship.trim() : undefined,
         bacenta: role === 'leader' && bacenta.trim() ? bacenta.trim() : undefined,
         avatarInitials: initials,
@@ -181,9 +184,11 @@ export const RegisterUserModal: React.FC<Props> = ({
   };
 
   // Determine which roles this user is permitted to create:
-  // General Overseer & Admin: all roles
+  // Admin: can create Admin, General Overseer, Council Overseer, Governor, Leader
+  // General Overseer: General Overseer, Council Overseer, Governor, Leader
   // Council Overseer: Governor, Bacenta Leader, or fellow Council Overseer
   // Governor: Bacenta Leader
+  const canCreateAdmin = !currentUser || currentUser.role === 'admin';
   const canCreateGeneralOverseer = !currentUser || currentUser.role === 'admin' || currentUser.role === 'general_overseer';
   const canCreateCouncilOverseer = !currentUser || currentUser.role === 'admin' || currentUser.role === 'general_overseer' || isCnl;
   const canCreateGovernor = !currentUser || currentUser.role === 'admin' || currentUser.role === 'general_overseer' || isCnl;
@@ -283,18 +288,36 @@ export const RegisterUserModal: React.FC<Props> = ({
               <label className="block text-xs font-semibold text-slate-200 mb-1.5">
                 Select Leadership Authority Tier *
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {canCreateAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('admin')}
+                    className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                      role === 'admin'
+                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-xs'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Shield className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                    <span>Admin</span>
+                    <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
+                      Full Access
+                    </span>
+                  </button>
+                )}
+
                 {canCreateGeneralOverseer && (
                   <button
                     type="button"
                     onClick={() => handleRoleChange('general_overseer')}
                     className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
                       role === 'general_overseer'
-                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-xs'
+                        ? 'bg-purple-950/80 border-purple-500 text-purple-300 shadow-xs'
                         : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <Sparkles className="w-4 h-4 mx-auto mb-1 text-emerald-400" />
+                    <Sparkles className="w-4 h-4 mx-auto mb-1 text-purple-400" />
                     <span>General Overseer</span>
                     <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
                       All Councils

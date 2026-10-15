@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Printer, Download, Sparkles, Building2, CheckCircle2, FileDown } from 'lucide-react';
 import { OutreachEntry, UserProfile, OutreachLevel, OutreachType, isCouncilOverseer } from '../types';
 import { generateAnalyticsPDF } from '../services/pdfExport';
+import { AppLogo } from './AppLogo';
 
 interface Props {
   isOpen: boolean;
@@ -168,17 +169,20 @@ export const PrintableReportModal: React.FC<Props> = ({
         {/* Printable Document Body */}
         <div className="p-8 sm:p-10 overflow-y-auto space-y-6 bg-slate-900 text-slate-100 print:bg-white print:text-slate-900 print:p-0 print:m-0">
           {/* Document Letterhead */}
-          <div className="border-b-2 border-slate-800 print:border-slate-900 pb-6 flex items-start justify-between">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 print:text-slate-500 block">
-                Official Ministry Evangelism Record
-              </span>
-              <h1 className="text-3xl font-extrabold text-white print:text-slate-900 tracking-tight mt-1">
-                EPHESIANS OUTREACH
-              </h1>
-              <p className="text-xs text-slate-400 print:text-slate-600 mt-1 max-w-md">
-                Evangelism Field Operations, Soul Harvest Analytics & Leader Turnout Report
-              </p>
+          <div className="border-b-2 border-slate-800 print:border-slate-900 pb-6 flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <AppLogo size="lg" />
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 print:text-slate-500 block">
+                  Official Ministry Evangelism Record
+                </span>
+                <h1 className="text-3xl font-extrabold text-white print:text-slate-900 tracking-tight mt-1">
+                  EPHESIANS OUTREACH
+                </h1>
+                <p className="text-xs text-slate-400 print:text-slate-600 mt-1 max-w-md">
+                  Evangelism Field Operations, Soul Harvest Analytics & Leader Turnout Report
+                </p>
+              </div>
             </div>
             <div className="text-right text-xs text-slate-400 print:text-slate-600">
               <p>

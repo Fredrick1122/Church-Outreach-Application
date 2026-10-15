@@ -9,13 +9,14 @@ import {
   LogOut,
   LogIn,
   Sparkles,
+  Flame,
   Sun,
   Moon,
 } from 'lucide-react';
 import { UserProfile, isGeneralOverseer, isCouncilOverseer, isGovernor } from '../types';
 import { AppLogo } from './AppLogo';
 
-export type NavTab = 'form' | 'dashboard' | 'operations' | 'converts' | 'audit';
+export type NavTab = 'form' | 'dashboard' | 'operations' | 'converts' | 'audit' | 'people';
 
 interface Props {
   activeTab: NavTab;
@@ -26,7 +27,7 @@ interface Props {
   pendingSyncCount: number;
   unreadNotificationsCount?: number;
   onOpenNotifications?: () => void;
-  onOpenScriptureMotivation?: () => void;
+  onOpenScriptureMotivation?: (tab?: 'soul_winning' | 'evangelism') => void;
   theme?: 'dark' | 'light';
   onToggleTheme?: () => void;
 }
@@ -43,14 +44,18 @@ export const Navbar: React.FC<Props> = ({
   theme = 'dark',
   onToggleTheme,
 }) => {
+  const isAdm = currentUser?.role === 'admin';
   const isGenOverseer = currentUser ? isGeneralOverseer(currentUser.role) : false;
   const isCnlOverseer = currentUser ? isCouncilOverseer(currentUser.role) : false;
   const isGov = currentUser ? isGovernor(currentUser.role) : false;
-  const hasDashboardAccess = isGenOverseer || isCnlOverseer || isGov;
-  const hasLedgerAccess = isGenOverseer || isCnlOverseer || isGov;
-  const hasAuditAccess = isGenOverseer || isCnlOverseer;
+  const hasDashboardAccess = isAdm || isGenOverseer || isCnlOverseer || isGov;
+  const hasLedgerAccess = isAdm || isGenOverseer || isCnlOverseer || isGov;
+  const hasAuditAccess = isAdm || isGenOverseer || isCnlOverseer;
+  const hasPeopleAccess = isAdm;
 
-  const dashboardLabel = isGenOverseer
+  const dashboardLabel = isAdm
+    ? 'Admin Command'
+    : isGenOverseer
     ? 'General Overseer'
     : isCnlOverseer
     ? `${currentUser?.council || 'Council'} Overseer`
@@ -69,14 +74,15 @@ export const Navbar: React.FC<Props> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Zone 1: Single text element wordmark */}
           <div className="flex items-center gap-2.5 shrink-0">
+            <AppLogo size="md" allowUpload={true} theme={theme} />
             <button
+              type="button"
               onClick={() => onSelectTab('form')}
-              className={`text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap shrink-0 flex items-center gap-2 hover:opacity-90 transition-opacity ${
+              className={`text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap shrink-0 hover:opacity-90 transition-opacity cursor-pointer ${
                 theme === 'light' ? 'text-slate-900' : 'text-white'
               }`}
             >
-              <AppLogo size="sm" allowUpload={true} theme={theme} />
-              <span>Ephesians Outreach</span>
+              Ephesians Outreach
             </button>
           </div>
 
@@ -140,6 +146,19 @@ export const Navbar: React.FC<Props> = ({
                   <span>Storage & Audit</span>
                 </button>
               )}
+              {hasPeopleAccess && (
+                <button
+                  onClick={() => onSelectTab('people')}
+                  className={`transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                    activeTab === 'people'
+                      ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
+                      : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-emerald-400" />
+                  <span>Registered People</span>
+                </button>
+              )}
             </nav>
           )}
 
@@ -166,17 +185,31 @@ export const Navbar: React.FC<Props> = ({
               </button>
             )}
 
-            {/* AI Scripture Motivation Pop-up Trigger */}
+            {/* Live Scripture Tabs: Soul Winning & Evangelism */}
             {onOpenScriptureMotivation && (
-              <button
-                onClick={onOpenScriptureMotivation}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-emerald-500/40 text-emerald-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer"
-                title="AI Pop-up Scripture Motivation on Evangelism & Soul Winning"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
-                <span className="hidden sm:inline">Scripture Word</span>
-                <span className="sm:hidden">Word</span>
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onOpenScriptureMotivation('soul_winning')}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/35 hover:to-amber-600/35 border border-amber-500/50 text-amber-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer"
+                  title="Open Scriptures on Soul Winning"
+                >
+                  <Flame className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+                  <span className="hidden sm:inline">Soul Winning</span>
+                  <span className="sm:hidden">Souls</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenScriptureMotivation('evangelism')}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-600/20 hover:from-emerald-500/35 hover:to-teal-600/35 border border-emerald-500/50 text-emerald-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer"
+                  title="Open Scriptures on Evangelism"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse shrink-0" />
+                  <span className="hidden sm:inline">Evangelism</span>
+                  <span className="sm:hidden">Evangelism</span>
+                </button>
+              </div>
             )}
 
             {currentUser ? (
@@ -223,7 +256,9 @@ export const Navbar: React.FC<Props> = ({
                       {currentUser.name}
                     </span>
                     <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider block truncate max-w-[150px]">
-                      {isGenOverseer
+                      {isAdm
+                        ? (currentUser.email.toLowerCase() === 'dogbatseyfredrick@gmail.com' ? 'Lead Admin' : (currentUser.roleTitle || 'Admin'))
+                        : isGenOverseer
                         ? 'General Overseer'
                         : isCnlOverseer
                         ? `${currentUser.council} Overseer`
@@ -263,7 +298,7 @@ export const Navbar: React.FC<Props> = ({
       {/* Mobile Fixed Bottom Navigation Bar - ONLY SHOWN IF LOGGED IN */}
       {currentUser && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800">
-          <div className="grid grid-cols-4 items-center h-16 px-1">
+          <div className={`grid ${hasPeopleAccess ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-1`}>
             <button
               onClick={() => onSelectTab('form')}
               className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
@@ -285,7 +320,7 @@ export const Navbar: React.FC<Props> = ({
                 {!hasDashboardAccess && <Lock className="w-2.5 h-2.5 text-amber-400 absolute -top-1 -right-1" />}
               </div>
               <span className="text-[10px] tracking-tight mt-1">
-                {isGov ? 'Governor' : isCnlOverseer ? 'Council' : 'Overseer'}
+                {isAdm ? 'Admin' : isGov ? 'Governor' : isCnlOverseer ? 'Council' : 'Overseer'}
               </span>
             </button>
 
@@ -314,6 +349,18 @@ export const Navbar: React.FC<Props> = ({
               </div>
               <span className="text-[10px] tracking-tight mt-1">Converts</span>
             </button>
+
+            {hasPeopleAccess && (
+              <button
+                onClick={() => onSelectTab('people')}
+                className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
+                  activeTab === 'people' ? 'text-emerald-400 font-bold' : 'text-slate-400'
+                }`}
+              >
+                <Users className="w-5 h-5 text-emerald-400" />
+                <span className="text-[10px] tracking-tight mt-1">People</span>
+              </button>
+            )}
           </div>
         </div>
       )}

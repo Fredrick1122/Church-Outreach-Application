@@ -20,7 +20,10 @@ import {
   getPendingSyncCount,
   subscribeToStore,
   refreshAllFromServer,
+  getUsers,
 } from './services/storage';
+import { Users } from 'lucide-react';
+import { RegisteredPeopleView } from './components/RegisteredPeopleView';
 import {
   initRealtime,
   subscribeToRealtimeNotifications,
@@ -62,6 +65,7 @@ export default function App() {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isScriptureModalOpen, setIsScriptureModalOpen] = useState(false);
+  const [scriptureInitialTab, setScriptureInitialTab] = useState<'soul_winning' | 'evangelism' | 'shepherding' | 'all'>('soul_winning');
 
   // Theme State: White (Light) or Dark Mode
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -75,6 +79,11 @@ export default function App() {
       localStorage.setItem('ephesians_theme', next);
       return next;
     });
+  };
+
+  const handleOpenScriptures = (tab: 'soul_winning' | 'evangelism' | 'shepherding' | 'all' = 'soul_winning') => {
+    setScriptureInitialTab(tab);
+    setIsScriptureModalOpen(true);
   };
 
   useEffect(() => {
@@ -157,9 +166,11 @@ export default function App() {
   const isGeneralOverseerUser = currentUser?.role === 'general_overseer';
   const isCouncilOverseerUser = currentUser ? isCouncilOverseer(currentUser.role) : false;
   const isGov = currentUser ? isGovernor(currentUser.role) : false;
-  const isOverseerRole = currentUser ? (isGeneralOverseer(currentUser.role) || isCouncilOverseerUser) : false;
-  const hasDashboardAccess = Boolean(currentUser && (isOverseerRole || isGov));
-  const hasLedgerAccess = Boolean(currentUser && (isOverseerRole || isGov));
+  const isOverseerRole = currentUser ? (isAdmin || isGeneralOverseer(currentUser.role) || isCouncilOverseerUser) : false;
+  const hasDashboardAccess = Boolean(currentUser && (isAdmin || isOverseerRole || isGov));
+  const hasLedgerAccess = Boolean(currentUser && (isAdmin || isOverseerRole || isGov));
+  const hasAuditAccess = Boolean(currentUser && (isAdmin || isOverseerRole));
+  const hasPeopleAccess = Boolean(currentUser && isAdmin);
 
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
 
@@ -180,7 +191,7 @@ export default function App() {
         pendingSyncCount={pendingSyncCount}
         unreadNotificationsCount={unreadNotificationsCount}
         onOpenNotifications={() => setIsNotificationModalOpen(true)}
-        onOpenScriptureMotivation={() => setIsScriptureModalOpen(true)}
+        onOpenScriptureMotivation={handleOpenScriptures}
         theme={theme}
         onToggleTheme={toggleTheme}
       />
@@ -194,7 +205,7 @@ export default function App() {
             onEntrySaved={() => {
               setOutreaches(getOutreachesForUser(currentUser));
             }}
-            onOpenScriptureMotivation={() => setIsScriptureModalOpen(true)}
+            onOpenScriptureMotivation={handleOpenScriptures}
           />
         )}
 
@@ -266,12 +277,21 @@ export default function App() {
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => setIsRegisterModalOpen(true)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors"
-                  >
-                    + Register Leadership Account
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab('people')}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Users className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Registered People ({getUsers().length})</span>
+                    </button>
+                    <button
+                      onClick={() => setIsRegisterModalOpen(true)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors cursor-pointer"
+                    >
+                      + Register Leadership Account
+                    </button>
+                  </div>
                 </div>
 
                 {adminViewMode === 'overseer' ? (
@@ -342,7 +362,7 @@ export default function App() {
         {/* STORAGE & AUDIT TAB */}
         {activeTab === 'audit' && (
           <>
-            {!isOverseerRole ? (
+            {!hasAuditAccess ? (
               <AccessRestrictedView
                 currentUser={currentUser}
                 onSwitchAccount={() => setIsAccountModalOpen(true)}
@@ -351,6 +371,27 @@ export default function App() {
               />
             ) : (
               <AuditTrailView currentUser={currentUser!} />
+            )}
+          </>
+        )}
+
+        {/* REGISTERED PEOPLE & LEADERSHIP DIRECTORY */}
+        {activeTab === 'people' && (
+          <>
+            {!hasPeopleAccess ? (
+              <AccessRestrictedView
+                currentUser={currentUser}
+                onSwitchAccount={() => setIsAccountModalOpen(true)}
+                onGoToForm={() => setActiveTab('form')}
+                attemptedSection="Registered People & Leadership Directory"
+              />
+            ) : (
+              <RegisteredPeopleView
+                currentUser={currentUser!}
+                onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+                theme={theme}
+                onSelectUser={handleSelectUser}
+              />
             )}
           </>
         )}
@@ -400,6 +441,7 @@ export default function App() {
       <AiScriptureMotivationModal
         isOpen={isScriptureModalOpen}
         onClose={() => setIsScriptureModalOpen(false)}
+        initialTab={scriptureInitialTab}
         totalSoulsHarvested={outreaches.reduce((sum, o) => sum + (o.soulsWonCount || 0), 0)}
       />
     </div>

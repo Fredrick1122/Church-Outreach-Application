@@ -25,7 +25,10 @@ import {
   KeyRound,
   Camera,
   Image as ImageIcon,
+  Flame,
+  BookOpen,
 } from 'lucide-react';
+import { AppLogo } from './AppLogo';
 import confetti from 'canvas-confetti';
 import {
   OutreachEntry,
@@ -53,7 +56,7 @@ interface Props {
   currentUser: UserProfile | null;
   onSwitchAccount: () => void;
   onEntrySaved: (entry: OutreachEntry) => void;
-  onOpenScriptureMotivation?: () => void;
+  onOpenScriptureMotivation?: (tab?: 'soul_winning' | 'evangelism') => void;
 }
 
 const OUTREACH_LEVELS: OutreachLevel[] = ['Bacentas', 'Governorships', 'Overseership'];
@@ -381,17 +384,17 @@ export const FieldEntryForm: React.FC<Props> = ({
       <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 overflow-hidden mb-5">
         <div className="h-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500" />
         <div className="p-5 sm:p-7">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Ephesians Outreach
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1">
                 Official Ministry Evangelism Activity & Harvest Metrics Report
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 border border-slate-700 flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
-              EO
+            <div className="shrink-0">
+              <AppLogo size="lg" allowUpload={true} />
             </div>
           </div>
 
@@ -441,28 +444,42 @@ export const FieldEntryForm: React.FC<Props> = ({
           <p className="mt-3 text-xs font-semibold text-rose-400">* Indicates required question</p>
 
           {onOpenScriptureMotivation && (
-            <div className="mt-4 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-amber-950/40 via-emerald-950/30 to-slate-950 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700/60 flex items-center justify-center text-amber-300 shrink-0">
-                  <Sparkles className="w-4 h-4 animate-pulse" />
-                </div>
-                <div>
-                  <strong className="text-xs font-bold text-white block">
-                    Apostolic Scripture Motivation for Soul Winners
-                  </strong>
-                  <p className="text-[11px] text-emerald-300/80">
-                    Daily AI biblical exhortations on evangelism, harvest perseverance & shepherd care
-                  </p>
+            <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-emerald-950/30 to-slate-950 border border-emerald-500/40 shadow-sm space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-900/70 border border-emerald-600/70 flex items-center justify-center text-amber-300 shrink-0 shadow-xs">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <strong className="text-sm font-extrabold text-white block">
+                      Scriptures on Soul Winning & Evangelism
+                    </strong>
+                    <p className="text-xs text-emerald-300/90 font-medium">
+                      Daily biblical verses, audio read-aloud & prayers to fire up the field teams
+                    </p>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={onOpenScriptureMotivation}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs shrink-0 self-end sm:self-auto"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-                <span>Scripture Word</span>
-              </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => onOpenScriptureMotivation('soul_winning')}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600/90 to-amber-500/90 hover:from-amber-500 hover:to-amber-400 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-950/40 cursor-pointer"
+                >
+                  <Flame className="w-4 h-4 text-amber-200" />
+                  <span>Scriptures on Soul Winning</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenScriptureMotivation('evangelism')}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600/90 to-teal-600/90 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-950/40 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-200" />
+                  <span>Scriptures on Evangelism</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

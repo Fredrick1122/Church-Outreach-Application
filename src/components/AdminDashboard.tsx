@@ -45,6 +45,7 @@ import {
 } from '../services/realtime';
 import { CreateObjectiveModal } from './CreateObjectiveModal';
 import { OutreachPicturesGallery } from './OutreachPicturesGallery';
+import { AppLogo } from './AppLogo';
 
 interface Props {
   outreaches: OutreachEntry[];
@@ -315,18 +316,21 @@ export const AdminDashboard: React.FC<Props> = ({
 
       {/* Dashboard Top Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              Field Operations & Harvest Analytics
-            </h2>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
-              Real-Time
-            </span>
+        <div className="flex items-center gap-3.5">
+          <AppLogo size="md" />
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                Field Operations & Harvest Analytics
+              </h2>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+                Real-Time
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 font-semibold mt-1">
+              Tracking evangelism impact across Councils, Governorships, and Bacentas
+            </p>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Tracking evangelism impact across Councils, Governorships, and Bacentas
-          </p>
         </div>
 
         {/* Action Buttons: Export & Official Print */}
@@ -335,7 +339,7 @@ export const AdminDashboard: React.FC<Props> = ({
             <button
               onClick={onOpenRegisterModal}
               className="px-3.5 py-2 text-xs font-semibold text-emerald-200 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
-              title="Register new Overseer, Governor, or Bacenta Leader (General Overseer Authority)"
+              title="Register new Admin, Overseer, Governor, or Bacenta Leader"
             >
               <UserPlus className="w-3.5 h-3.5 text-emerald-400" />
               <span>+ Register Leadership</span>

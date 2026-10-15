@@ -23,8 +23,12 @@ export interface UserProfile {
   createdAt?: string;
 }
 
+export function isAdmin(role?: string): boolean {
+  return role === 'admin';
+}
+
 export function isGeneralOverseer(role?: string): boolean {
-  return role === 'admin' || role === 'general_overseer';
+  return role === 'general_overseer';
 }
 
 export function isCouncilOverseer(role?: string): boolean {
@@ -41,6 +45,91 @@ export function isLeader(role?: string): boolean {
 
 export function isOverseer(role?: string): boolean {
   return isGeneralOverseer(role) || isCouncilOverseer(role);
+}
+
+export function hasFullAccess(role?: string): boolean {
+  return role === 'admin';
+}
+
+export interface HierarchyTier {
+  role: UserRole;
+  level: number;
+  label: string;
+  badgeColor: string;
+  badgeBg: string;
+  badgeBorder: string;
+  description: string;
+}
+
+export const HIERARCHY_TIERS: HierarchyTier[] = [
+  {
+    role: 'leader',
+    level: 1,
+    label: 'Bacenta Leader / Field Evangelist',
+    badgeColor: 'text-amber-300',
+    badgeBg: 'bg-amber-950/60',
+    badgeBorder: 'border-amber-800/80',
+    description: 'Local Bacenta outreach and soul winning cell leadership',
+  },
+  {
+    role: 'governor',
+    level: 2,
+    label: 'Governor / Governorship Pastor',
+    badgeColor: 'text-blue-300',
+    badgeBg: 'bg-blue-950/60',
+    badgeBorder: 'border-blue-800/80',
+    description: 'Jurisdictional oversight over all bacentas in assigned Governorship',
+  },
+  {
+    role: 'council_overseer',
+    level: 3,
+    label: 'Council Overseer',
+    badgeColor: 'text-indigo-300',
+    badgeBg: 'bg-indigo-950/60',
+    badgeBorder: 'border-indigo-800/80',
+    description: 'Pastoral oversight over assigned Council (Ephesians 1 to 5)',
+  },
+  {
+    role: 'general_overseer',
+    level: 4,
+    label: 'General Overseer',
+    badgeColor: 'text-purple-300',
+    badgeBg: 'bg-purple-950/60',
+    badgeBorder: 'border-purple-800/80',
+    description: 'Apostolic oversight across all Councils & Governorships',
+  },
+  {
+    role: 'admin',
+    level: 5,
+    label: 'Lead Admin / Admin',
+    badgeColor: 'text-emerald-300',
+    badgeBg: 'bg-emerald-950/60',
+    badgeBorder: 'border-emerald-800/80',
+    description: 'Platform master administrator with full unrestricted access to everything',
+  },
+];
+
+export function getHierarchyTier(role?: string): HierarchyTier {
+  const normRole = role === 'overseer' ? 'council_overseer' : role;
+  return HIERARCHY_TIERS.find((t) => t.role === normRole) || HIERARCHY_TIERS[0];
+}
+
+export function getHierarchyLevel(role?: string): number {
+  return getHierarchyTier(role).level;
+}
+
+export function getNextHigherRole(role?: string): UserRole | null {
+  const currentLevel = getHierarchyLevel(role);
+  if (currentLevel >= 5) return null;
+  const nextTier = HIERARCHY_TIERS.find((t) => t.level === currentLevel + 1);
+  return nextTier ? nextTier.role : null;
+}
+
+export function getNextLowerRole(role?: string): UserRole | null {
+  const currentLevel = getHierarchyLevel(role);
+  if (currentLevel <= 1) return null;
+  const lowerTier = HIERARCHY_TIERS.find((t) => t.level === currentLevel - 1);
+  return lowerTier ? lowerTier.role : null;
 }
 
 export type OutreachLevel = 'Bacentas' | 'Governorships' | 'Councils' | 'Overseership';

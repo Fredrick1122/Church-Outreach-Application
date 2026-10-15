@@ -50,7 +50,7 @@ export const OutreachPicturesGallery: React.FC<Props> = ({
   subtitle,
   showCouncilFilter = false,
 }) => {
-  const isGenOverseer = isGeneralOverseer(currentUser.role);
+  const isGenOverseer = currentUser.role === 'admin' || isGeneralOverseer(currentUser.role);
   const isCnlOverseer = isCouncilOverseer(currentUser.role);
   const isGov = isGovernor(currentUser.role);
 

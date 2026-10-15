@@ -22,7 +22,7 @@ interface Props {
 }
 
 export const ConvertsDirectory: React.FC<Props> = ({ outreaches, currentUser }) => {
-  const isGen = isGeneralOverseer(currentUser.role);
+  const isGen = currentUser.role === 'admin' || isGeneralOverseer(currentUser.role);
   const isCouncil = isCouncilOverseer(currentUser.role);
   const isGov = isGovernor(currentUser.role);
   const userCouncil = currentUser.council && !currentUser.council.includes('All') ? currentUser.council : 'Ephesians 1';

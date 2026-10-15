@@ -40,7 +40,7 @@ export const OperationsTable: React.FC<Props> = ({
   currentUser,
   onOpenReportPrint,
 }) => {
-  const isGen = isGeneralOverseer(currentUser.role);
+  const isGen = currentUser.role === 'admin' || isGeneralOverseer(currentUser.role);
   const isCouncil = isCouncilOverseer(currentUser.role);
   const isGov = isGovernor(currentUser.role);
   const userCouncil = currentUser.council && !currentUser.council.includes('All') ? currentUser.council : 'Ephesians 1';

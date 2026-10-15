@@ -191,7 +191,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   For strict church security, leadership credentials cannot be reset self-service.
-                  Please contact the <strong>General Overseer / Lead Admin (dogbatseyfredrick@gmail.com)</strong> directly to reset your credentials.
+                  Please contact the <strong>Lead Admin (dogbatseyfredrick@gmail.com)</strong> directly to reset your credentials.
                 </p>
               </div>
             )}

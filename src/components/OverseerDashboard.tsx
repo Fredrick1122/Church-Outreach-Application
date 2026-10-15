@@ -27,6 +27,7 @@ import {
   Camera,
   Image as ImageIcon,
 } from 'lucide-react';
+import { AppLogo } from './AppLogo';
 import {
   OutreachEntry,
   UserProfile,
@@ -342,24 +343,26 @@ export const OverseerDashboard: React.FC<Props> = ({
           : 'from-slate-900 via-slate-900 to-emerald-950/40'
       } rounded-2xl border border-slate-800 p-6 sm:p-7 shadow-xl`}>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5">
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                isCouncilSpecific
-                  ? 'bg-indigo-950 text-indigo-400 border border-indigo-800'
-                  : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-              } flex items-center gap-1.5`}>
-                <Shield className="w-3 h-3" />
-                {isCouncilSpecific ? 'Council Overseer Jurisdiction' : 'General Overseer Jurisdiction'}
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                {isCouncilSpecific ? `${assignedCouncil} Solely` : 'All 5 Councils (Ephesians 1 to 5)'}
-              </span>
-            </div>
+          <div className="flex items-start gap-4">
+            <AppLogo size="lg" />
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5">
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                  isCouncilSpecific
+                    ? 'bg-indigo-950 text-indigo-400 border border-indigo-800'
+                    : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                } flex items-center gap-1.5`}>
+                  <Shield className="w-3 h-3" />
+                  {isCouncilSpecific ? 'Council Overseer Jurisdiction' : 'General Overseer Jurisdiction'}
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                  {isCouncilSpecific ? `${assignedCouncil} Solely` : 'All 5 Councils (Ephesians 1 to 5)'}
+                </span>
+              </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-              <span>{isCouncilSpecific ? `${assignedCouncil} Council Overseer Dashboard` : 'General Overseer Ministry Command'}</span>
-            </h1>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                <span>{isCouncilSpecific ? `${assignedCouncil} Council Overseer Dashboard` : 'General Overseer Ministry Command'}</span>
+              </h1>
 
             <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
               {isCouncilSpecific ? (
@@ -373,6 +376,7 @@ export const OverseerDashboard: React.FC<Props> = ({
               )}
             </p>
           </div>
+        </div>
 
           {/* Action Ribbon */}
           <div className="flex flex-wrap items-center gap-2.5">

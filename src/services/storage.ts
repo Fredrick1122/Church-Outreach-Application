@@ -4,10 +4,14 @@ import {
   SystemAlert,
   SyncAuditLog,
   LeaderAttendance,
+  UserRole,
+  isAdmin,
   isGeneralOverseer,
   isCouncilOverseer,
   isGovernor,
   isLeader,
+  getNextHigherRole,
+  getNextLowerRole,
 } from '../types';
 import bcrypt from 'bcryptjs';
 import {
@@ -196,6 +200,7 @@ export function getUsers(): UserProfile[] {
           cleaned[adminIndex].email = 'dogbatseyfredrick@gmail.com';
           cleaned[adminIndex].name = 'Fredrick Dogbatsey';
           cleaned[adminIndex].role = 'admin';
+          cleaned[adminIndex].roleTitle = 'Lead Admin';
           // Ensure hash matches Godfred_1
           if (!bcrypt.compareSync('Godfred_1', cleaned[adminIndex].passwordHash || '')) {
             cleaned[adminIndex].passwordHash = SYSTEM_USERS[0].passwordHash;
@@ -221,7 +226,9 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
     (u) => u.email.trim().toLowerCase() === newUser.email.trim().toLowerCase()
   );
   if (existing) {
-    throw new Error(`A user with email ${newUser.email} is already registered.`);
+    throw new Error(
+      `Account already exists: ${existing.name} is already registered with email "${newUser.email}" as ${existing.roleTitle} (${existing.role.toUpperCase()}). One account cannot be registered multiple times, but can be moved to a higher or lower leadership hierarchy level.`
+    );
   }
 
   // Securely hash password with bcryptjs before persisting
@@ -248,6 +255,133 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
   }).catch(() => {});
 
   return { success: true, user: newUser };
+}
+
+export function updateUserHierarchy(
+  userId: string,
+  newRole: UserRole,
+  details?: {
+    roleTitle?: string;
+    council?: string;
+    governorship?: string;
+    bacenta?: string;
+  }
+): UserProfile {
+  const allUsers = getUsers();
+  const index = allUsers.findIndex(
+    (u) => u.id === userId || u.email.trim().toLowerCase() === userId.trim().toLowerCase()
+  );
+  if (index === -1) {
+    throw new Error('User account not found.');
+  }
+
+  const targetUser = { ...allUsers[index] };
+  const oldRole = targetUser.role;
+  const oldTitle = targetUser.roleTitle;
+
+  // Protect Fredrick Dogbatsey Lead Admin
+  if (
+    (targetUser.email.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' || targetUser.id === 'user_admin_1') &&
+    newRole !== 'admin'
+  ) {
+    throw new Error('Fredrick Dogbatsey is the designated Lead Admin and cannot be demoted.');
+  }
+
+  targetUser.role = newRole;
+
+  if (details?.roleTitle && details.roleTitle.trim()) {
+    targetUser.roleTitle = details.roleTitle.trim();
+  } else {
+    if (newRole === 'admin') {
+      targetUser.roleTitle = 'Admin';
+      targetUser.council = 'All Councils';
+    } else if (newRole === 'general_overseer') {
+      targetUser.roleTitle = 'General Overseer (All Councils)';
+      targetUser.council = 'All Councils';
+    } else if (newRole === 'council_overseer' || newRole === 'overseer') {
+      const cnl = details?.council || (targetUser.council?.includes('All') ? 'Ephesians 1' : targetUser.council) || 'Ephesians 1';
+      targetUser.council = cnl;
+      targetUser.roleTitle = `${cnl} Council Overseer Pastor`;
+    } else if (newRole === 'governor') {
+      const cnl = details?.council || (targetUser.council?.includes('All') ? 'Ephesians 1' : targetUser.council) || 'Ephesians 1';
+      targetUser.council = cnl;
+      targetUser.roleTitle = `${details?.governorship || targetUser.governorship || 'Governorship'} Pastor`;
+    } else {
+      targetUser.roleTitle = 'Bacenta Leader / Field Evangelist';
+    }
+  }
+
+  if (details?.council) targetUser.council = details.council;
+  if (details?.governorship !== undefined) targetUser.governorship = details.governorship;
+  if (details?.bacenta !== undefined) targetUser.bacenta = details.bacenta;
+
+  // Set avatar color matching tier
+  if (newRole === 'admin') targetUser.avatarColor = 'bg-emerald-600';
+  else if (newRole === 'general_overseer') targetUser.avatarColor = 'bg-purple-600';
+  else if (newRole === 'council_overseer' || newRole === 'overseer') targetUser.avatarColor = 'bg-indigo-600';
+  else if (newRole === 'governor') targetUser.avatarColor = 'bg-blue-600';
+  else targetUser.avatarColor = 'bg-amber-600';
+
+  allUsers[index] = targetUser;
+  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(allUsers));
+
+  // If the active user was updated, update active session
+  const active = getCurrentUser();
+  if (active && (active.id === targetUser.id || active.email.trim().toLowerCase() === targetUser.email.trim().toLowerCase())) {
+    setCurrentUser(targetUser);
+  }
+
+  addAuditLog({
+    action: 'UPDATE',
+    details: `Leadership Hierarchy updated: ${targetUser.name} moved from ${oldRole.toUpperCase()} (${oldTitle}) to ${newRole.toUpperCase()} (${targetUser.roleTitle}).`,
+    status: 'SUCCESS',
+  });
+
+  notify();
+
+  // Push to backend
+  fetch(`/api/users/${targetUser.id}/hierarchy`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      role: targetUser.role,
+      roleTitle: targetUser.roleTitle,
+      council: targetUser.council,
+      governorship: targetUser.governorship,
+      bacenta: targetUser.bacenta,
+    }),
+  }).catch(() => {});
+
+  return targetUser;
+}
+
+export function promoteUser(userId: string): UserProfile {
+  const allUsers = getUsers();
+  const user = allUsers.find(
+    (u) => u.id === userId || u.email.trim().toLowerCase() === userId.trim().toLowerCase()
+  );
+  if (!user) throw new Error('User not found.');
+  const higherRole = getNextHigherRole(user.role);
+  if (!higherRole) {
+    throw new Error(`${user.name} is already at the highest hierarchy level (Level 5: Admin).`);
+  }
+  return updateUserHierarchy(user.id, higherRole);
+}
+
+export function demoteUser(userId: string): UserProfile {
+  const allUsers = getUsers();
+  const user = allUsers.find(
+    (u) => u.id === userId || u.email.trim().toLowerCase() === userId.trim().toLowerCase()
+  );
+  if (!user) throw new Error('User not found.');
+  if (user.email.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' || user.id === 'user_admin_1') {
+    throw new Error('Fredrick Dogbatsey is Lead Admin and cannot be demoted.');
+  }
+  const lowerRole = getNextLowerRole(user.role);
+  if (!lowerRole) {
+    throw new Error(`${user.name} is already at the base leadership tier (Level 1: Field Leader).`);
+  }
+  return updateUserHierarchy(user.id, lowerRole);
 }
 
 export function loginUser(emailInput: string, passwordInput?: string): UserProfile {
@@ -522,8 +656,8 @@ export function getOutreachesForUser(user: UserProfile | null): OutreachEntry[] 
     return [];
   }
   const all = getOutreaches();
-  if (isGeneralOverseer(user.role)) {
-    // General Overseer & Admin have access across the board to all Councils!
+  if (user.role === 'admin' || isGeneralOverseer(user.role)) {
+    // Admin & General Overseer have access across the board to all Councils!
     return all;
   }
   if (isCouncilOverseer(user.role)) {

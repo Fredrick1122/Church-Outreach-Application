@@ -276,7 +276,7 @@ let systemUsers: any[] = [
     email: 'dogbatseyfredrick@gmail.com',
     passwordHash: '$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y',
     role: 'admin',
-    roleTitle: 'Lead Operations Admin',
+    roleTitle: 'Lead Admin',
     council: 'All Councils',
     avatarInitials: 'FD',
     avatarColor: 'bg-teal-600',
@@ -396,8 +396,12 @@ app.post('/api/users', (req: Request, res: Response) => {
     role,
     roleTitle:
       roleTitle ||
-      (role === 'admin' || role === 'overseer'
-        ? 'Overseer'
+      (role === 'admin'
+        ? 'Admin'
+        : role === 'general_overseer'
+        ? 'General Overseer'
+        : role === 'council_overseer' || role === 'overseer'
+        ? `${council || 'Ephesians 1'} Council Overseer`
         : role === 'governor'
         ? `${council || 'Governorship'} Pastor`
         : 'Field Leader'),
@@ -420,6 +424,35 @@ app.post('/api/users', (req: Request, res: Response) => {
   });
 
   res.status(201).json({ success: true, user: newUser });
+});
+
+// Update Leadership Hierarchy Level (Promote / Demote / Reassign)
+app.patch('/api/users/:id/hierarchy', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { role, roleTitle, council, governorship, bacenta } = req.body;
+  const user = systemUsers.find((u) => u.id === id);
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  const oldRole = user.role;
+  const oldTitle = user.roleTitle;
+  if (role) user.role = role;
+  if (roleTitle) user.roleTitle = roleTitle;
+  if (council) user.council = council;
+  if (governorship !== undefined) user.governorship = governorship;
+  if (bacenta !== undefined) user.bacenta = bacenta;
+
+  auditLogs.unshift({
+    id: `log_${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    action: 'UPDATE',
+    details: `Admin changed leadership hierarchy for ${user.name}: moved from ${oldRole.toUpperCase()} (${oldTitle}) to ${user.role.toUpperCase()} (${user.roleTitle}).`,
+    status: 'SUCCESS',
+  });
+
+  const { passwordHash: _, ...safeUser } = user;
+  res.json({ success: true, user: safeUser });
 });
 
 // Governorships by Council (Ephesians 1 to 5)
@@ -923,6 +956,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
   const { category, customTopic } = req.body;
   const fallbackScriptures = [
     {
+      category: 'soul_winning',
       reference: 'Proverbs 11:30',
       text: 'The fruit of the righteous is a tree of life; and he that winneth souls is wise.',
       theme: 'Soul Winning & Heavenly Wisdom',
@@ -930,6 +964,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Lord, give me heavenly wisdom, compassionate boldness, and utterance to win precious souls today.',
     },
     {
+      category: 'evangelism',
       reference: 'Matthew 28:19-20',
       text: 'Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost: Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world. Amen.',
       theme: 'The Apostolic Great Commission',
@@ -937,6 +972,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Lord Jesus, empower every field worker across all councils to proclaim Your word without fear.',
     },
     {
+      category: 'shepherding',
       reference: 'John 10:11, 14',
       text: 'I am the good shepherd: the good shepherd giveth his life for the sheep... I know my sheep, and am known of mine.',
       theme: 'Apostolic Shepherding & Bacenta Care',
@@ -944,6 +980,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Holy Spirit, give our governors and bacenta leaders the heart of the Good Shepherd to nurse and establish every new convert.',
     },
     {
+      category: 'soul_winning',
       reference: 'Daniel 12:3',
       text: 'And they that be wise shall shine as the brightness of the firmament; and they that turn many to righteousness as the stars for ever and ever.',
       theme: 'Eternal Reward of Soul Winners',
@@ -951,6 +988,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Father, ignite an unquenchable fire in our spirits to turn multitudes unto righteousness.',
     },
     {
+      category: 'evangelism',
       reference: 'Acts 1:8',
       text: 'But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.',
       theme: 'Supernatural Power for the Streets',
@@ -958,6 +996,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Almighty God, release Pentecostal boldness and demonstration of the Holy Spirit on every team today.',
     },
     {
+      category: 'shepherding',
       reference: 'John 21:15-17',
       text: 'He saith unto him, Feed my lambs... Feed my sheep.',
       theme: 'The Shepherd’s Sacred Trust',
@@ -965,6 +1004,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Lord, give us persistent love to follow up on every convert until Christ is formed in them.',
     },
     {
+      category: 'soul_winning',
       reference: 'Luke 15:7',
       text: 'I say unto you, that likewise joy shall be in heaven over one sinner that repenteth, more than over ninety and nine just persons, which need no repentance.',
       theme: 'Joy in the Courts of Heaven',
@@ -972,6 +1012,7 @@ app.post('/api/ai-motivation', async (req: Request, res: Response) => {
       prayer: 'Lord, make our team instruments of great heavenly joy as we bring sinners to repentance.',
     },
     {
+      category: 'evangelism',
       reference: '2 Timothy 4:2, 5',
       text: 'Preach the word; be instant in season, out of season... do the work of an evangelist, make full proof of thy ministry.',
       theme: 'Uncompromising Field Endurance',
@@ -1021,8 +1062,18 @@ Return ONLY valid JSON matching this exact structure:
     }
   }
 
-  // Fallback to random selected rich scripture
-  const random = fallbackScriptures[Math.floor(Math.random() * fallbackScriptures.length)];
+  // Filter fallback scriptures by category if specified
+  const filtered = category
+    ? fallbackScriptures.filter(
+        (s) =>
+          s.category === category ||
+          (category === 'soul_winning' && s.category === 'soul_winning') ||
+          (category === 'evangelism' && s.category === 'evangelism')
+      )
+    : fallbackScriptures;
+
+  const listToUse = filtered.length > 0 ? filtered : fallbackScriptures;
+  const random = listToUse[Math.floor(Math.random() * listToUse.length)];
   res.json({ success: true, source: 'curated', motivation: random });
 });
 

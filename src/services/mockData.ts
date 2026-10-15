@@ -9,7 +9,7 @@ export const SYSTEM_USERS: UserProfile[] = [
     email: 'dogbatseyfredrick@gmail.com',
     passwordHash: '$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y',
     role: 'admin',
-    roleTitle: 'Lead Operations Admin',
+    roleTitle: 'Lead Admin',
     council: 'All Councils',
     avatarInitials: 'FD',
     avatarColor: 'bg-teal-600',
