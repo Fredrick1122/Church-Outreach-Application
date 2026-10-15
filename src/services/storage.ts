@@ -36,19 +36,119 @@ const STORAGE_KEYS = {
   USERS: 'ephesians_system_users_v8',
 };
 
-// Purge any legacy sample keys
+// ========================
+// DATA PRESERVATION & RECOVERY
+// Salvage, preserve, and merge all previously submitted outreach forms & registered leaders
+// ========================
 try {
-  ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'].forEach((v) => {
-    localStorage.removeItem(`ephesians_outreaches_${v}`);
-    localStorage.removeItem(`ephesians_alerts_${v}`);
-    localStorage.removeItem(`ephesians_audit_logs_${v}`);
-    localStorage.removeItem(`ephesians_councils_${v}`);
-    localStorage.removeItem(`ephesians_governorships_${v}`);
-    localStorage.removeItem(`ephesians_bacentas_${v}`);
-    localStorage.removeItem(`ephesians_leaders_${v}`);
-    localStorage.removeItem(`ephesians_system_users_${v}`);
-    localStorage.removeItem(`ephesians_current_user_${v}`);
-  });
+  if (typeof window !== 'undefined') {
+    // 1. Recover and preserve all outreaches across versions
+    const outreachKeys = [
+      'ephesians_outreaches',
+      'ephesians_outreaches_v1',
+      'ephesians_outreaches_v2',
+      'ephesians_outreaches_v3',
+      'ephesians_outreaches_v4',
+      'ephesians_outreaches_v5',
+      'ephesians_outreaches_v6',
+      'ephesians_outreaches_v7',
+      'ephesians_outreaches_v8',
+    ];
+    const recoveredOutreachesMap = new Map<string, OutreachEntry>();
+
+    const currentOutreachRaw = localStorage.getItem(STORAGE_KEYS.OUTREACHES);
+    if (currentOutreachRaw) {
+      try {
+        const parsed = JSON.parse(currentOutreachRaw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((o: OutreachEntry) => {
+            if (o && o.id) recoveredOutreachesMap.set(o.id, o);
+          });
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    outreachKeys.forEach((k) => {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((o: OutreachEntry) => {
+              if (o && o.id && !recoveredOutreachesMap.has(o.id)) {
+                recoveredOutreachesMap.set(o.id, o);
+              }
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    });
+
+    if (recoveredOutreachesMap.size > 0) {
+      localStorage.setItem(
+        STORAGE_KEYS.OUTREACHES,
+        JSON.stringify(Array.from(recoveredOutreachesMap.values()))
+      );
+    }
+
+    // 2. Recover and preserve all registered leaders across versions
+    const userKeys = [
+      'ephesians_system_users',
+      'ephesians_system_users_v1',
+      'ephesians_system_users_v2',
+      'ephesians_system_users_v3',
+      'ephesians_system_users_v4',
+      'ephesians_system_users_v5',
+      'ephesians_system_users_v6',
+      'ephesians_system_users_v7',
+      'ephesians_system_users_v8',
+    ];
+    const recoveredUsersMap = new Map<string, UserProfile>();
+
+    const currentUsersRaw = localStorage.getItem(STORAGE_KEYS.USERS);
+    if (currentUsersRaw) {
+      try {
+        const parsed = JSON.parse(currentUsersRaw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((u: UserProfile) => {
+            if (u && (u.id || u.email)) recoveredUsersMap.set(u.id || u.email, u);
+          });
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    userKeys.forEach((k) => {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((u: UserProfile) => {
+              const key = u.id || u.email;
+              if (u && key && !recoveredUsersMap.has(key)) {
+                recoveredUsersMap.set(key, u);
+              }
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    });
+
+    if (recoveredUsersMap.size > 0) {
+      localStorage.setItem(
+        STORAGE_KEYS.USERS,
+        JSON.stringify(Array.from(recoveredUsersMap.values()))
+      );
+    }
+  }
 } catch {
   // Ignore in non-browser environment
 }
@@ -201,6 +301,7 @@ export function getUsers(): UserProfile[] {
           cleaned[adminIndex].name = 'Fredrick Dogbatsey';
           cleaned[adminIndex].role = 'admin';
           cleaned[adminIndex].roleTitle = 'Lead Admin';
+          cleaned[adminIndex].phone = '+233 59 736 5182';
           // Ensure hash matches Godfred_1
           if (!bcrypt.compareSync('Godfred_1', cleaned[adminIndex].passwordHash || '')) {
             cleaned[adminIndex].passwordHash = SYSTEM_USERS[0].passwordHash;
@@ -639,15 +740,43 @@ export function getOutreaches(): OutreachEntry[] {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        const cleaned = parsed.filter((o) => !o.id?.startsWith('outreach_eph'));
-        return cleaned;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.filter((o) => !o.id?.startsWith('outreach_eph'));
       }
     } catch {
       // fallback
     }
   }
-  localStorage.setItem(STORAGE_KEYS.OUTREACHES, JSON.stringify([]));
+
+  // Check older storage keys if present
+  const legacyKeys = [
+    'ephesians_outreaches',
+    'ephesians_outreaches_v7',
+    'ephesians_outreaches_v6',
+    'ephesians_outreaches_v5',
+    'ephesians_outreaches_v4',
+    'ephesians_outreaches_v3',
+    'ephesians_outreaches_v2',
+    'ephesians_outreaches_v1',
+  ];
+  for (const k of legacyKeys) {
+    const raw = localStorage.getItem(k);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const cleaned = parsed.filter((o) => !o.id?.startsWith('outreach_eph'));
+          if (cleaned.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.OUTREACHES, JSON.stringify(cleaned));
+            return cleaned;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   return [];
 }
 
@@ -826,25 +955,72 @@ export async function refreshAllFromServer(): Promise<void> {
     if (outreachesRes && Array.isArray(outreachesRes.outreaches)) {
       const serverOutreaches = outreachesRes.outreaches;
       const localOutreaches = getOutreaches();
-      // Merge: preserve any pending offline items
-      const pendingMap = new Map(localOutreaches.filter((o) => o.syncStatus === 'pending').map((o) => [o.id, o]));
-      const mergedOutreaches = [
-        ...pendingMap.values(),
-        ...serverOutreaches.filter((o: OutreachEntry) => !pendingMap.has(o.id)),
-      ];
+      // Union by ID to never drop locally submitted form data
+      const outreachMap = new Map<string, OutreachEntry>();
+      serverOutreaches.forEach((o: OutreachEntry) => outreachMap.set(o.id, o));
+      const missingOnServer: OutreachEntry[] = [];
+      localOutreaches.forEach((loc) => {
+        if (!outreachMap.has(loc.id)) {
+          outreachMap.set(loc.id, loc);
+          missingOnServer.push(loc);
+        }
+      });
+      const mergedOutreaches = Array.from(outreachMap.values()).sort(
+        (a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime()
+      );
       localStorage.setItem(STORAGE_KEYS.OUTREACHES, JSON.stringify(mergedOutreaches));
       changed = true;
+
+      // If any local form data was not on server, sync it now to server disk
+      if (missingOnServer.length > 0) {
+        fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ queue: missingOnServer }),
+        }).catch(() => {});
+      }
     }
 
     if (usersRes && Array.isArray(usersRes.users)) {
-      const merged = [...usersRes.users];
-      SYSTEM_USERS.forEach((sys) => {
-        if (!merged.some((u) => u.id === sys.id || u.email === sys.email)) {
-          merged.push(sys);
+      const serverUsers = usersRes.users;
+      const localUsers = getUsers();
+      const userMap = new Map<string, any>();
+      serverUsers.forEach((u: any) => userMap.set(u.id || u.email, u));
+      const missingUsersOnServer: any[] = [];
+      localUsers.forEach((loc) => {
+        const key = loc.id || loc.email;
+        if (!userMap.has(key) && !Array.from(userMap.values()).some((u) => u.email?.toLowerCase() === loc.email?.toLowerCase())) {
+          userMap.set(key, loc);
+          missingUsersOnServer.push(loc);
         }
       });
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(merged));
+      SYSTEM_USERS.forEach((sys) => {
+        const key = sys.id || sys.email;
+        if (!userMap.has(key)) {
+          userMap.set(key, sys);
+        }
+      });
+      const mergedUsers = Array.from(userMap.values());
+      const adminIdx = mergedUsers.findIndex(
+        (u) => u.email?.toLowerCase() === 'dogbatseyfredrick@gmail.com' || u.id === 'user_admin_1'
+      );
+      if (adminIdx >= 0) {
+        mergedUsers[adminIdx].phone = '+233 59 736 5182';
+        mergedUsers[adminIdx].role = 'admin';
+        mergedUsers[adminIdx].roleTitle = 'Lead Admin';
+      }
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(mergedUsers));
       changed = true;
+
+      if (missingUsersOnServer.length > 0) {
+        missingUsersOnServer.forEach((u) => {
+          fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(u),
+          }).catch(() => {});
+        });
+      }
     }
 
     if (councilsRes && Array.isArray(councilsRes.councils)) {

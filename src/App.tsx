@@ -12,6 +12,7 @@ import {
   isCouncilOverseer,
   isGovernor,
   isOverseer,
+  isLeader,
 } from './types';
 import {
   getCurrentUser,
@@ -34,7 +35,9 @@ import { Navbar, NavTab } from './components/Navbar';
 import { FieldEntryForm } from './components/FieldEntryForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { OverseerDashboard } from './components/OverseerDashboard';
+import { CouncilOverseerDashboard } from './components/CouncilOverseerDashboard';
 import { GovernorDashboard } from './components/GovernorDashboard';
+import { LeaderDashboard } from './components/LeaderDashboard';
 import { OperationsTable } from './components/OperationsTable';
 import { ConvertsDirectory } from './components/ConvertsDirectory';
 import { AuditTrailView } from './components/AuditTrailView';
@@ -140,10 +143,8 @@ export default function App() {
     setUserState(user);
     setOutreaches(getOutreachesForUser(user));
     initRealtime(user);
-    // Route user to their oversight dashboard automatically
-    if (isGeneralOverseer(user.role) || isCouncilOverseer(user.role) || isGovernor(user.role)) {
-      setActiveTab('dashboard');
-    }
+    // When any leader's account is clicked, open directly to their leader account or dashboard!
+    setActiveTab('dashboard');
   };
 
   const handleLogout = () => {
@@ -166,9 +167,10 @@ export default function App() {
   const isGeneralOverseerUser = currentUser?.role === 'general_overseer';
   const isCouncilOverseerUser = currentUser ? isCouncilOverseer(currentUser.role) : false;
   const isGov = currentUser ? isGovernor(currentUser.role) : false;
+  const isLeaderUser = currentUser ? isLeader(currentUser.role) : false;
   const isOverseerRole = currentUser ? (isAdmin || isGeneralOverseer(currentUser.role) || isCouncilOverseerUser) : false;
-  const hasDashboardAccess = Boolean(currentUser && (isAdmin || isOverseerRole || isGov));
-  const hasLedgerAccess = Boolean(currentUser && (isAdmin || isOverseerRole || isGov));
+  const hasDashboardAccess = Boolean(currentUser);
+  const hasLedgerAccess = Boolean(currentUser && (isAdmin || isOverseerRole || isGov || isLeaderUser));
   const hasAuditAccess = Boolean(currentUser && (isAdmin || isOverseerRole));
   const hasPeopleAccess = Boolean(currentUser && isAdmin);
 
@@ -198,6 +200,37 @@ export default function App() {
 
       {/* Main Container Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-5">
+        {/* Active Leader Session Switcher Banner */}
+        {currentUser && currentUser.id !== 'user_admin_1' && currentUser.email?.toLowerCase() !== 'dogbatseyfredrick@gmail.com' && (
+          <div className="mb-4 p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md animate-fadeIn">
+            <div className="flex items-center gap-2 truncate">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="text-emerald-200 truncate">
+                Active Leader Space: <strong className="text-white">{currentUser.name}</strong> ({currentUser.roleTitle} · {currentUser.council})
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const leadAdmin = getUsers().find((u) => u.id === 'user_admin_1' || u.email?.toLowerCase() === 'dogbatseyfredrick@gmail.com');
+                  if (leadAdmin) handleSelectUser(leadAdmin);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                ← Return to Lead Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('leader')}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-colors cursor-pointer"
+              >
+                Leaders Directory
+              </button>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'form' && (
           <FieldEntryForm
             currentUser={currentUser}
@@ -230,12 +263,11 @@ export default function App() {
               />
             ) : isCouncilOverseerUser ? (
               /* COUNCIL OVERSEER DASHBOARD: ACCESS TO THEIR COUNCIL SOLELY */
-              <OverseerDashboard
+              <CouncilOverseerDashboard
                 outreaches={outreaches}
                 currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
-                theme={theme}
               />
             ) : isGeneralOverseerUser ? (
               /* GENERAL OVERSEER DASHBOARD: ACCESS ACROSS BOARD TO ALL COUNCILS */
@@ -245,6 +277,17 @@ export default function App() {
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                theme={theme}
+              />
+            ) : isLeaderUser ? (
+              /* BACENTA LEADER / FIELD EVANGELIST DASHBOARD */
+              <LeaderDashboard
+                outreaches={outreaches}
+                currentUser={currentUser!}
+                onOpenReportPrint={() => setIsPrintModalOpen(true)}
+                onNavigateToForm={() => setActiveTab('form')}
+                onNavigateToLeaders={() => setActiveTab('leader')}
+                onNavigateToConverts={() => setActiveTab('converts')}
                 theme={theme}
               />
             ) : (
@@ -279,11 +322,11 @@ export default function App() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setActiveTab('people')}
+                      onClick={() => setActiveTab('leader')}
                       className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       <Users className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Registered People ({getUsers().length})</span>
+                      <span>Registered Leaders ({getUsers().length})</span>
                     </button>
                     <button
                       onClick={() => setIsRegisterModalOpen(true)}
@@ -375,15 +418,15 @@ export default function App() {
           </>
         )}
 
-        {/* REGISTERED PEOPLE & LEADERSHIP DIRECTORY */}
-        {activeTab === 'people' && (
+        {/* REGISTERED LEADERS & LEADERSHIP DIRECTORY */}
+        {(activeTab === 'people' || activeTab === 'leader') && (
           <>
             {!hasPeopleAccess ? (
               <AccessRestrictedView
                 currentUser={currentUser}
                 onSwitchAccount={() => setIsAccountModalOpen(true)}
                 onGoToForm={() => setActiveTab('form')}
-                attemptedSection="Registered People & Leadership Directory"
+                attemptedSection="Registered Leaders & Leadership Directory"
               />
             ) : (
               <RegisteredPeopleView

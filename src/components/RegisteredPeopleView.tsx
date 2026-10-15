@@ -19,6 +19,9 @@ import {
   X,
   ChevronRight,
   Info,
+  LayoutDashboard,
+  User,
+  ExternalLink,
 } from 'lucide-react';
 import {
   UserProfile,
@@ -64,6 +67,8 @@ export const RegisteredPeopleView: React.FC<Props> = ({
   const [selectedCouncil, setSelectedCouncil] = useState('');
   const [selectedGov, setSelectedGov] = useState('');
   const [selectedBacenta, setSelectedBacenta] = useState('');
+  // Inspected user modal state
+  const [inspectedUser, setInspectedUser] = useState<UserProfile | null>(null);
 
   const refreshUsers = () => {
     setUsers(getUsers());
@@ -194,14 +199,14 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                 <h1 className={`text-xl sm:text-2xl font-extrabold tracking-tight ${
                   theme === 'light' ? 'text-slate-900' : 'text-white'
                 }`}>
-                  Registered People & Leadership Directory
+                  Registered Leaders & Hierarchy Directory
                 </h1>
                 <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
                   Admin Authority
                 </span>
               </div>
               <p className={`text-xs mt-1 ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
-                View and manage all registered people across all hierarchy levels. Move members up or down the leadership hierarchy.
+                View and manage all registered leaders across all hierarchy levels. Move leaders up or down the leadership hierarchy.
               </p>
             </div>
           </div>
@@ -212,7 +217,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
               className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-950/30 transition-all cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
-              <span>+ Register New Admin / Leader</span>
+              <span>+ Register New Leader / Admin</span>
             </button>
           </div>
         </div>
@@ -366,15 +371,21 @@ export const RegisteredPeopleView: React.FC<Props> = ({
             return (
               <div
                 key={u.id}
-                className={`p-5 rounded-3xl border transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 ${
+                onClick={() => {
+                  if (onSelectUser) {
+                    onSelectUser(u);
+                  }
+                }}
+                className={`p-5 rounded-3xl border transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 cursor-pointer group hover:scale-[1.004] hover:shadow-xl ${
                   isLeadAdmin
                     ? theme === 'light'
-                      ? 'bg-emerald-50/40 border-emerald-300'
-                      : 'bg-emerald-950/20 border-emerald-800/80'
+                      ? 'bg-emerald-50/40 border-emerald-300 hover:border-emerald-500'
+                      : 'bg-emerald-950/20 border-emerald-800/80 hover:border-emerald-600'
                     : theme === 'light'
-                    ? 'bg-white border-slate-200 hover:border-slate-300'
-                    : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                    ? 'bg-white border-slate-200 hover:border-emerald-400'
+                    : 'bg-slate-900 border-slate-800 hover:border-emerald-500/50'
                 }`}
+                title={`Click to open ${u.name}'s account dashboard`}
               >
                 {/* Person details */}
                 <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
@@ -408,6 +419,10 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                           You (Active Session)
                         </span>
                       )}
+
+                      <span className="text-[10px] font-medium text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline-flex items-center gap-0.5">
+                        Open Dashboard →
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-3 text-xs flex-wrap">
@@ -417,10 +432,15 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                       </span>
 
                       {u.phone && (
-                        <span className="text-slate-400 flex items-center gap-1">
-                          <Phone className="w-3.5 h-3.5" />
+                        <a
+                          href={`tel:${u.phone.replace(/\s+/g, '')}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium"
+                          title={`Call ${u.phone}`}
+                        >
+                          <Phone className="w-3.5 h-3.5 text-emerald-400" />
                           {u.phone}
-                        </span>
+                        </a>
                       )}
 
                       <span className="text-slate-400 flex items-center gap-1">
@@ -437,11 +457,45 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* Actions: Promote, Demote, Adjust Level */}
+                {/* Actions: Open Dashboard, Account Info, Adjust, Promote, Demote */}
                 <div className="flex items-center gap-2 self-end lg:self-center shrink-0 flex-wrap">
+                  {/* Primary Action: Open Leader Dashboard */}
+                  {onSelectUser && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectUser(u);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all cursor-pointer"
+                      title={`Open ${u.name}'s Dashboard`}
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      <span>{isCurrentSession ? 'My Dashboard' : 'Open Dashboard'}</span>
+                    </button>
+                  )}
+
+                  {/* Account Details */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInspectedUser(u);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="View leadership account credentials & details"
+                  >
+                    <User className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Account</span>
+                  </button>
+
                   {/* Move Up / Promote */}
                   <button
-                    onClick={() => handlePromote(u)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePromote(u);
+                    }}
                     disabled={!canMoveUp}
                     title={
                       canMoveUp
@@ -460,7 +514,11 @@ export const RegisteredPeopleView: React.FC<Props> = ({
 
                   {/* Move Down / Demote */}
                   <button
-                    onClick={() => handleDemote(u)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDemote(u);
+                    }}
                     disabled={!canMoveDown}
                     title={
                       isLeadAdmin
@@ -481,25 +539,17 @@ export const RegisteredPeopleView: React.FC<Props> = ({
 
                   {/* Adjust Level / Role Modal Opener */}
                   <button
-                    onClick={() => openEditModal(u)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(u);
+                    }}
                     className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     title="Change leadership hierarchy level and assigned jurisdiction"
                   >
                     <Sliders className="w-3.5 h-3.5 text-indigo-400" />
                     <span>Adjust Level</span>
                   </button>
-
-                  {/* Sign In As Account */}
-                  {onSelectUser && !isCurrentSession && (
-                    <button
-                      onClick={() => onSelectUser(u)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Test active view as this user"
-                    >
-                      <span>Sign In</span>
-                      <ChevronRight className="w-3 h-3 text-slate-400" />
-                    </button>
-                  )}
                 </div>
               </div>
             );
@@ -678,6 +728,103 @@ export const RegisteredPeopleView: React.FC<Props> = ({
           </div>
         </div>
       )}
+      {/* Inspected Leader Account Details Modal */}
+      {inspectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+          <div className="bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-800 flex flex-col animate-scaleUp">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-800 flex items-center justify-center text-emerald-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Leader Account Details</h3>
+                  <p className="text-xs text-slate-400">Ministry profile and jurisdiction</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInspectedUser(null)}
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Profile Content */}
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shrink-0 shadow-md ${inspectedUser.avatarColor}`}
+                >
+                  {inspectedUser.avatarInitials}
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-extrabold text-white text-base truncate">{inspectedUser.name}</h4>
+                  <p className="text-xs text-emerald-400 font-semibold">{inspectedUser.roleTitle}</p>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 mt-1 inline-block">
+                    Level {getHierarchyTier(inspectedUser.role).level} · {getHierarchyTier(inspectedUser.role).label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Jurisdiction Grid */}
+              <div className="space-y-2 text-xs">
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <span className="text-slate-400">Council</span>
+                  <span className="font-bold text-white">{inspectedUser.council}</span>
+                </div>
+                {inspectedUser.governorship && (
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400">Governorship</span>
+                    <span className="font-bold text-blue-300">{inspectedUser.governorship}</span>
+                  </div>
+                )}
+                {inspectedUser.bacenta && (
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400">Bacenta</span>
+                    <span className="font-bold text-amber-300">{inspectedUser.bacenta}</span>
+                  </div>
+                )}
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <span className="text-slate-400">Email</span>
+                  <span className="font-semibold text-slate-200 truncate max-w-[200px]">{inspectedUser.email}</span>
+                </div>
+                {inspectedUser.phone && (
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400">Phone</span>
+                    <a
+                      href={`tel:${inspectedUser.phone.replace(/\s+/g, '')}`}
+                      className="font-bold text-emerald-400 hover:underline"
+                    >
+                      {inspectedUser.phone}
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Primary Action Button */}
+              {onSelectUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = inspectedUser;
+                    setInspectedUser(null);
+                    onSelectUser(target);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Open {inspectedUser.name}'s Dashboard</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+export const RegisteredLeadersView = RegisteredPeopleView;

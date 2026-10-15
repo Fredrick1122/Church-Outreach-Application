@@ -269,6 +269,8 @@ let auditLogs: AuditLog[] = [
   },
 ];
 
+let appLogo: string | null = null;
+
 let systemUsers: any[] = [
   {
     id: 'user_admin_1',
@@ -280,7 +282,7 @@ let systemUsers: any[] = [
     council: 'All Councils',
     avatarInitials: 'FD',
     avatarColor: 'bg-teal-600',
-    phone: '+233 24 412 8990',
+    phone: '+233 59 736 5182',
   },
 ];
 
@@ -293,6 +295,105 @@ let governorshipsByCouncil: Record<string, string[]> = {
 };
 
 let bacentasByGovernorship: Record<string, string[]> = {};
+
+// ========================
+// PERSISTENT DATA DISK STORE
+// Ensures registered leaders, uploaded forms & permanent logo are never lost across restarts/updates
+// ========================
+const DATA_DIR = path.join(__dirname, 'data');
+const DB_FILE = path.join(DATA_DIR, 'app_store.json');
+
+function ensureDataDir() {
+  if (!fs.existsSync(DATA_DIR)) {
+    try {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function saveStoreToDisk() {
+  try {
+    ensureDataDir();
+    const data = {
+      systemUsers,
+      outreaches,
+      fieldObjectives,
+      appLogo,
+      governorshipsByCouncil,
+      bacentasByGovernorship,
+      savedAt: new Date().toISOString(),
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to write app_store to disk:', err);
+  }
+}
+
+function loadStoreFromDisk() {
+  try {
+    ensureDataDir();
+    if (fs.existsSync(DB_FILE)) {
+      const raw = fs.readFileSync(DB_FILE, 'utf-8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.systemUsers) && data.systemUsers.length > 0) {
+        systemUsers = data.systemUsers;
+      }
+      if (Array.isArray(data.outreaches)) {
+        outreaches = data.outreaches;
+      }
+      if (Array.isArray(data.fieldObjectives)) {
+        fieldObjectives = data.fieldObjectives;
+      }
+      if (data.appLogo) {
+        appLogo = data.appLogo;
+      }
+      if (data.governorshipsByCouncil) {
+        governorshipsByCouncil = data.governorshipsByCouncil;
+      }
+      if (data.bacentasByGovernorship) {
+        bacentasByGovernorship = data.bacentasByGovernorship;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load app_store from disk:', err);
+  }
+
+  // Ensure Lead Admin Fredrick Dogbatsey is present with phone +233 59 736 5182 & admin role
+  const adminIdx = systemUsers.findIndex(
+    (u) =>
+      u.id === 'user_admin_1' ||
+      u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
+      u.email?.trim().toLowerCase() === 'dogbatseyfredrick.com'
+  );
+  if (adminIdx >= 0) {
+    systemUsers[adminIdx].email = 'dogbatseyfredrick@gmail.com';
+    systemUsers[adminIdx].name = 'Fredrick Dogbatsey';
+    systemUsers[adminIdx].role = 'admin';
+    systemUsers[adminIdx].roleTitle = 'Lead Admin';
+    systemUsers[adminIdx].phone = '+233 59 736 5182';
+    if (!systemUsers[adminIdx].passwordHash) {
+      systemUsers[adminIdx].passwordHash = '$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y';
+    }
+  } else {
+    systemUsers.unshift({
+      id: 'user_admin_1',
+      name: 'Fredrick Dogbatsey',
+      email: 'dogbatseyfredrick@gmail.com',
+      passwordHash: '$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y',
+      role: 'admin',
+      roleTitle: 'Lead Admin',
+      council: 'All Councils',
+      avatarInitials: 'FD',
+      avatarColor: 'bg-teal-600',
+      phone: '+233 59 736 5182',
+    });
+  }
+}
+
+// Initialize from persistent disk store
+loadStoreFromDisk();
 
 // ========================
 // API ENDPOINTS
@@ -414,6 +515,7 @@ app.post('/api/users', (req: Request, res: Response) => {
   };
 
   systemUsers.push(newUser);
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,
@@ -442,6 +544,8 @@ app.patch('/api/users/:id/hierarchy', (req: Request, res: Response) => {
   if (council) user.council = council;
   if (governorship !== undefined) user.governorship = governorship;
   if (bacenta !== undefined) user.bacenta = bacenta;
+
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,
@@ -512,6 +616,19 @@ app.post('/api/bacentas', (req: Request, res: Response) => {
     broadcastEvent({ type: 'data:updated' });
   }
   res.json({ success: true, governorship: targetGov, bacentas: bacentasByGovernorship[targetGov] });
+});
+
+// Permanent Church App Logo endpoints
+app.get('/api/logo', (req: Request, res: Response) => {
+  res.json({ logo: appLogo });
+});
+
+app.post('/api/logo', (req: Request, res: Response) => {
+  const { logo } = req.body;
+  appLogo = logo || null;
+  saveStoreToDisk();
+  broadcastEvent({ type: 'logo:updated', logo: appLogo });
+  res.json({ success: true, logo: appLogo });
 });
 
 // 1. Health check & system info
@@ -639,6 +756,7 @@ app.post('/api/outreaches', (req: Request, res: Response) => {
   };
 
   outreaches.unshift(newEntry);
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,
@@ -676,6 +794,7 @@ app.post('/api/outreaches/:id/approve', (req: Request, res: Response) => {
     comment: comment || 'Verified and approved by administration.',
   };
   outreach.updatedAt = new Date().toISOString();
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,
@@ -723,6 +842,7 @@ app.put('/api/outreaches/:id', (req: Request, res: Response) => {
     ...req.body,
     updatedAt: new Date().toISOString(),
   };
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,
@@ -752,6 +872,7 @@ app.delete('/api/outreaches/:id', (req: Request, res: Response) => {
     res.status(404).json({ error: 'Outreach record not found' });
     return;
   }
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,
@@ -789,6 +910,7 @@ app.post('/api/sync', (req: Request, res: Response) => {
     }
     syncedCount++;
   }
+  saveStoreToDisk();
 
   auditLogs.unshift({
     id: `log_${Date.now()}`,

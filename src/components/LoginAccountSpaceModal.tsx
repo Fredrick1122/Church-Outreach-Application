@@ -7,9 +7,12 @@ import {
   Shield,
   HelpCircle,
   LogIn,
+  ChevronDown,
+  ChevronUp,
+  Users,
 } from 'lucide-react';
 import { UserProfile } from '../types';
-import { loginUser } from '../services/storage';
+import { loginUser, getUsers } from '../services/storage';
 import { AppLogo } from './AppLogo';
 
 interface Props {
@@ -31,6 +34,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showQuickAccounts, setShowQuickAccounts] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -127,7 +131,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
                     setEmail(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="dogbatseyfredrick@gmail.com"
+                  placeholder="e.g. leader@ephesians.org"
                   autoComplete="email"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 font-medium transition-all"
                 />
@@ -174,14 +178,26 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
           </form>
 
           {/* Link Below: Forgot Password? */}
-          <div className="pt-2 text-center border-t border-slate-800/80">
-            <button
-              type="button"
-              onClick={() => setShowForgotModal(!showForgotModal)}
-              className="text-xs text-slate-400 hover:text-emerald-400 transition-colors font-medium underline underline-offset-4"
-            >
-              Forgot Password?
-            </button>
+          <div className="pt-2 text-center border-t border-slate-800/80 space-y-2">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(!showForgotModal)}
+                className="text-xs text-slate-400 hover:text-emerald-400 transition-colors font-medium underline underline-offset-4"
+              >
+                Forgot Password?
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowQuickAccounts(!showQuickAccounts)}
+                className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Leaders Accounts ({getUsers().length})</span>
+                {showQuickAccounts ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            </div>
 
             {showForgotModal && (
               <div className="mt-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-1.5 animate-fadeIn">
@@ -191,8 +207,49 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   For strict church security, leadership credentials cannot be reset self-service.
-                  Please contact the <strong>Lead Admin (dogbatseyfredrick@gmail.com)</strong> directly to reset your credentials.
+                  Please contact the <strong>Lead Admin (+233 59 736 5182 / dogbatseyfredrick@gmail.com)</strong> directly to reset your credentials.
                 </p>
+              </div>
+            )}
+
+            {/* Quick Leader Account Clicker */}
+            {showQuickAccounts && (
+              <div className="mt-2 text-left space-y-1.5 max-h-52 overflow-y-auto pr-1 animate-fadeIn">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                  Click any leader to open their account dashboard:
+                </p>
+                {getUsers().map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => {
+                      onSelectUser(u);
+                      onClose();
+                    }}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-extrabold shrink-0 ${
+                          u.avatarColor || 'bg-emerald-600'
+                        }`}
+                      >
+                        {u.avatarInitials}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors truncate">
+                          {u.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {u.roleTitle} · {u.council} {u.bacenta ? `(${u.bacenta})` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 group-hover:translate-x-0.5 transition-transform shrink-0">
+                      Open Dashboard →
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
           </div>

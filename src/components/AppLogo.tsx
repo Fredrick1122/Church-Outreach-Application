@@ -27,6 +27,31 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   });
 
   useEffect(() => {
+    // 1. Load permanent church logo from server
+    fetch('/api/logo')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.logo) {
+          setCustomLogo(data.logo);
+          try {
+            localStorage.setItem(STORAGE_KEY_LOGO, data.logo);
+          } catch {
+            // ignore
+          }
+        } else {
+          // If server has no logo yet but this client already uploaded one, sync to server disk
+          const local = localStorage.getItem(STORAGE_KEY_LOGO);
+          if (local) {
+            fetch('/api/logo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ logo: local }),
+            }).catch(() => {});
+          }
+        }
+      })
+      .catch(() => {});
+
     const handleUpdate = () => {
       try {
         setCustomLogo(localStorage.getItem(STORAGE_KEY_LOGO));
@@ -49,10 +74,11 @@ export const AppLogo: React.FC<AppLogoProps> = ({
 
     const reader = new FileReader();
     reader.onload = () => {
+      const resultStr = reader.result as string;
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const maxDim = 400;
+        const maxDim = 512;
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
           if (width > height) {
@@ -68,17 +94,23 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressed = canvas.toDataURL('image/jpeg', 0.88);
+          const compressed = canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.92);
           try {
             localStorage.setItem(STORAGE_KEY_LOGO, compressed);
             setCustomLogo(compressed);
             window.dispatchEvent(new Event('ephesians_logo_updated'));
+            // Persist permanently to backend server disk
+            fetch('/api/logo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ logo: compressed }),
+            }).catch(() => {});
           } catch {
             // ignore
           }
         }
       };
-      img.src = reader.result as string;
+      img.src = resultStr;
     };
     reader.readAsDataURL(file);
   };
@@ -89,6 +121,11 @@ export const AppLogo: React.FC<AppLogoProps> = ({
       localStorage.removeItem(STORAGE_KEY_LOGO);
       setCustomLogo(null);
       window.dispatchEvent(new Event('ephesians_logo_updated'));
+      fetch('/api/logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logo: null }),
+      }).catch(() => {});
     } catch {
       // ignore
     }

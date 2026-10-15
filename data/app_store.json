@@ -1,0 +1,46 @@
+{
+  "systemUsers": [
+    {
+      "id": "user_admin_1",
+      "name": "Fredrick Dogbatsey",
+      "email": "dogbatseyfredrick@gmail.com",
+      "passwordHash": "$2b$10$LeNqWAljFJZP4P2DLib/KeGwFGuj1C2NKM3EMSeelg44JXFr4iI8y",
+      "role": "admin",
+      "roleTitle": "Lead Admin",
+      "council": "All Councils",
+      "avatarInitials": "FD",
+      "avatarColor": "bg-teal-600",
+      "phone": "+233 59 736 5182"
+    }
+  ],
+  "outreaches": [],
+  "fieldObjectives": [
+    {
+      "id": "obj_great_harvest_5000",
+      "title": "Operation Great Harvest: 5,000 Souls Blitz",
+      "targetCouncil": "All Councils",
+      "targetSouls": 5000,
+      "targetLeaders": 50,
+      "priority": "urgent",
+      "deadline": "2026-12-31",
+      "instructions": "Kingdom mobilization across all councils: Personal evangelism, street invasions, and convert discipleship follow-up to achieve the 5,000 souls harvest goal.",
+      "createdBy": {
+        "id": "user_admin_1",
+        "name": "Fredrick Dogbatsey",
+        "role": "admin"
+      },
+      "createdAt": "2026-10-15T11:01:19.908Z",
+      "status": "active"
+    }
+  ],
+  "appLogo": null,
+  "governorshipsByCouncil": {
+    "Ephesians 1": [],
+    "Ephesians 2": [],
+    "Ephesians 3": [],
+    "Ephesians 4": [],
+    "Ephesians 5": []
+  },
+  "bacentasByGovernorship": {},
+  "savedAt": "2026-10-15T11:01:38.781Z"
+}

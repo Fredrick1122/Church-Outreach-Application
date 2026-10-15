@@ -13,7 +13,7 @@ export const SYSTEM_USERS: UserProfile[] = [
     council: 'All Councils',
     avatarInitials: 'FD',
     avatarColor: 'bg-teal-600',
-    phone: '+233 24 412 8990',
+    phone: '+233 59 736 5182',
   },
 ];
 

@@ -13,10 +13,10 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { UserProfile, isGeneralOverseer, isCouncilOverseer, isGovernor } from '../types';
+import { UserProfile, isGeneralOverseer, isCouncilOverseer, isGovernor, isLeader } from '../types';
 import { AppLogo } from './AppLogo';
 
-export type NavTab = 'form' | 'dashboard' | 'operations' | 'converts' | 'audit' | 'people';
+export type NavTab = 'form' | 'dashboard' | 'operations' | 'converts' | 'audit' | 'people' | 'leader';
 
 interface Props {
   activeTab: NavTab;
@@ -48,8 +48,9 @@ export const Navbar: React.FC<Props> = ({
   const isGenOverseer = currentUser ? isGeneralOverseer(currentUser.role) : false;
   const isCnlOverseer = currentUser ? isCouncilOverseer(currentUser.role) : false;
   const isGov = currentUser ? isGovernor(currentUser.role) : false;
-  const hasDashboardAccess = isAdm || isGenOverseer || isCnlOverseer || isGov;
-  const hasLedgerAccess = isAdm || isGenOverseer || isCnlOverseer || isGov;
+  const isLeaderUser = currentUser ? isLeader(currentUser.role) : false;
+  const hasDashboardAccess = Boolean(currentUser);
+  const hasLedgerAccess = Boolean(currentUser);
   const hasAuditAccess = isAdm || isGenOverseer || isCnlOverseer;
   const hasPeopleAccess = isAdm;
 
@@ -60,7 +61,9 @@ export const Navbar: React.FC<Props> = ({
     : isCnlOverseer
     ? `${currentUser?.council || 'Council'} Overseer`
     : isGov
-    ? 'Governorship Dashboard'
+    ? `${currentUser?.governorship || 'Governorship'} Dashboard`
+    : isLeaderUser
+    ? `${currentUser?.bacenta ? currentUser.bacenta + ' ' : ''}Leader Dashboard`
     : 'Dashboard';
 
   return (
@@ -148,15 +151,15 @@ export const Navbar: React.FC<Props> = ({
               )}
               {hasPeopleAccess && (
                 <button
-                  onClick={() => onSelectTab('people')}
+                  onClick={() => onSelectTab('leader')}
                   className={`transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
-                    activeTab === 'people'
+                    activeTab === 'people' || activeTab === 'leader'
                       ? 'text-emerald-500 underline underline-offset-8 decoration-2 font-bold'
                       : theme === 'light' ? 'hover:text-slate-900' : 'hover:text-white'
                   }`}
                 >
                   <Users className="w-4 h-4 text-emerald-400" />
-                  <span>Registered People</span>
+                  <span>LEADERS</span>
                 </button>
               )}
             </nav>
@@ -320,7 +323,7 @@ export const Navbar: React.FC<Props> = ({
                 {!hasDashboardAccess && <Lock className="w-2.5 h-2.5 text-amber-400 absolute -top-1 -right-1" />}
               </div>
               <span className="text-[10px] tracking-tight mt-1">
-                {isAdm ? 'Admin' : isGov ? 'Governor' : isCnlOverseer ? 'Council' : 'Overseer'}
+                {isAdm ? 'Admin' : isGov ? 'Governor' : isCnlOverseer ? 'Council' : isLeaderUser ? 'Leader' : 'Overseer'}
               </span>
             </button>
 
@@ -352,13 +355,13 @@ export const Navbar: React.FC<Props> = ({
 
             {hasPeopleAccess && (
               <button
-                onClick={() => onSelectTab('people')}
+                onClick={() => onSelectTab('leader')}
                 className={`flex flex-col items-center justify-center h-full min-h-[44px] transition-colors ${
-                  activeTab === 'people' ? 'text-emerald-400 font-bold' : 'text-slate-400'
+                  activeTab === 'people' || activeTab === 'leader' ? 'text-emerald-400 font-bold' : 'text-slate-400'
                 }`}
               >
                 <Users className="w-5 h-5 text-emerald-400" />
-                <span className="text-[10px] tracking-tight mt-1">People</span>
+                <span className="text-[10px] tracking-tight mt-1 font-bold">LEADER</span>
               </button>
             )}
           </div>
