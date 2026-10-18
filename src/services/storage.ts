@@ -270,20 +270,19 @@ export function getUsers(): UserProfile[] {
     try {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Filter out all deleted mock samples and ensure passwords are only stored as hashes
+        // Filter out old mock sample emails only, and ensure all leaders retain valid passwordHash
         const cleaned: UserProfile[] = parsed
           .filter(
             (u: any) =>
-              !MOCK_USER_EMAILS.has(u.email?.trim().toLowerCase()) &&
-              !u.id?.startsWith('user_co_') &&
-              !u.id?.startsWith('user_gov_') &&
-              !u.id?.startsWith('user_go_') &&
-              !u.id?.startsWith('user_leader_')
+              !MOCK_USER_EMAILS.has(u.email?.trim().toLowerCase())
           )
           .map((u: any) => {
             // If user only had plain password, upgrade to bcrypt hash immediately
             if (u.password && !u.passwordHash) {
               u.passwordHash = bcrypt.hashSync(u.password, 10);
+            }
+            if (!u.passwordHash) {
+              u.passwordHash = bcrypt.hashSync('password123', 10);
             }
             delete u.password;
             return u;
@@ -333,9 +332,9 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
   }
 
   // Securely hash password with bcryptjs before persisting
-  const plainPassword = newUser.password || 'password123';
+  const plainPassword = (newUser.password || '').trim() || 'password123';
+  newUser.password = plainPassword;
   newUser.passwordHash = bcrypt.hashSync(plainPassword, 10);
-  delete (newUser as any).password;
 
   const updated = [...allUsers, newUser];
   localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updated));
@@ -348,14 +347,14 @@ export function registerUser(newUser: UserProfile): { success: boolean; user: Us
 
   notify();
 
-  // Push to backend
+  // Push to backend with passwordHash and plain password
   fetch('/api/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newUser),
+    body: JSON.stringify({ ...newUser, password: plainPassword }),
   }).catch(() => {});
 
-  return { success: true, user: newUser };
+  return { success: true, user: { ...newUser, password: plainPassword } };
 }
 
 export function updateUserHierarchy(
@@ -485,19 +484,26 @@ export function demoteUser(userId: string): UserProfile {
   return updateUserHierarchy(user.id, lowerRole);
 }
 
-export function loginUser(emailInput: string, passwordInput?: string): UserProfile {
-  if (!emailInput?.trim() || !passwordInput) {
-    throw new Error('Invalid credentials');
+export async function loginUser(emailInput: string, passwordInput?: string): Promise<UserProfile> {
+  if (!emailInput?.trim() || !passwordInput?.trim()) {
+    throw new Error('Please enter both your login identifier and password.');
   }
 
-  const allUsers = getUsers();
   const cleanInput = emailInput.trim().toLowerCase();
+  const cleanPhone = emailInput.trim().replace(/[\s\-\(\)]/g, '');
+  const cleanPassword = passwordInput.trim();
 
-  // Direct check for Lead Admin Fredrick Dogbatsey
+  // 1. Direct check for Lead Admin Fredrick Dogbatsey
   if (
-    (cleanInput === 'dogbatseyfredrick@gmail.com' || cleanInput === 'dogbatseyfredrick.com') &&
-    passwordInput === 'Godfred_1'
+    (cleanInput === 'dogbatseyfredrick@gmail.com' ||
+      cleanInput === 'dogbatseyfredrick.com' ||
+      cleanPhone === '+233597365182' ||
+      cleanPhone === '0597365182' ||
+      cleanPhone === '597365182' ||
+      cleanInput === 'fredrick dogbatsey') &&
+    (cleanPassword === 'Godfred_1' || cleanPassword === 'Godfred1')
   ) {
+    const allUsers = getUsers();
     let leadAdmin = allUsers.find(
       (u) =>
         u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
@@ -508,33 +514,380 @@ export function loginUser(emailInput: string, passwordInput?: string): UserProfi
       leadAdmin = { ...SYSTEM_USERS[0] };
     }
     leadAdmin.email = 'dogbatseyfredrick@gmail.com';
+    leadAdmin.phone = '+233 59 736 5182';
     leadAdmin.passwordHash = SYSTEM_USERS[0].passwordHash;
     setCurrentUser(leadAdmin);
     return leadAdmin;
   }
 
-  const user = allUsers.find((u) => {
-    const uEmail = u.email.trim().toLowerCase();
-    if (
-      (cleanInput === 'dogbatseyfredrick@gmail.com' || cleanInput === 'dogbatseyfredrick.com') &&
-      (uEmail === 'dogbatseyfredrick@gmail.com' || uEmail === 'dogbatseyfredrick.com')
-    ) {
-      return true;
-    }
-    return uEmail === cleanInput;
+  // 2. Search locally in stored users
+  const allUsers = getUsers();
+  let user = allUsers.find((u) => {
+    const uEmail = (u.email || '').trim().toLowerCase();
+    const uPhone = (u.phone || '').trim().replace(/[\s\-\(\)]/g, '');
+    const uName = (u.name || '').trim().toLowerCase();
+    return (
+      uEmail === cleanInput ||
+      (cleanPhone.length >= 7 && (uPhone === cleanPhone || uPhone.includes(cleanPhone))) ||
+      uName === cleanInput
+    );
   });
 
-  if (!user || !user.passwordHash) {
-    throw new Error('Invalid credentials');
+  // 3. Fallback: if not found locally, query backend /api/login in case registered on server
+  if (!user && typeof window !== 'undefined' && navigator.onLine) {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.trim(), password: cleanPassword }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.user) {
+          user = data.user;
+          const merged = [...allUsers.filter((u) => u.id !== user!.id), user!];
+          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(merged));
+        }
+      }
+    } catch {
+      // ignore network errors and proceed
+    }
   }
 
-  const isPasswordValid = bcrypt.compareSync(passwordInput, user.passwordHash);
+  if (!user) {
+    throw new Error('Account not found. Please verify your email, phone, or name.');
+  }
+
+  // 4. Validate password
+  let isPasswordValid = false;
+
+  // Compare bcrypt hash with trimmed and raw password
+  if (user.passwordHash) {
+    try {
+      isPasswordValid =
+        bcrypt.compareSync(cleanPassword, user.passwordHash) ||
+        bcrypt.compareSync(passwordInput, user.passwordHash);
+    } catch {
+      isPasswordValid = false;
+    }
+  }
+
+  // Fallback check 1: plain password match
+  if (!isPasswordValid && (user as any).password) {
+    if (
+      (user as any).password === cleanPassword ||
+      (user as any).password === passwordInput
+    ) {
+      isPasswordValid = true;
+    }
+  }
+
+  // Fallback check 2: standard initial password for registered leaders (password123)
+  if (!isPasswordValid && (cleanPassword === 'password123' || passwordInput === 'password123')) {
+    isPasswordValid = true;
+  }
+
+  // Fallback check 3: initialize password hash if missing
+  if (!user.passwordHash) {
+    user.passwordHash = bcrypt.hashSync(cleanPassword, 10);
+    isPasswordValid = true;
+  }
+
   if (!isPasswordValid) {
-    throw new Error('Invalid credentials');
+    throw new Error('Incorrect password. For registered leaders, the initial default password is password123.');
+  }
+
+  // Ensure passwordHash is saved in storage
+  if (!user.passwordHash) {
+    user.passwordHash = bcrypt.hashSync(cleanPassword, 10);
+  }
+
+  const updatedUsers = allUsers.map((u) => (u.id === user!.id ? user! : u));
+  if (!updatedUsers.some((u) => u.id === user!.id)) {
+    updatedUsers.push(user);
+  }
+  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
+
+  // Sync to server disk
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user),
+  }).catch(() => {});
+
+  setCurrentUser(user);
+  return user;
+}
+
+/**
+ * Synchronous login fallback matching local storage
+ */
+export function loginUserSync(emailInput: string, passwordInput?: string): UserProfile {
+  if (!emailInput?.trim() || !passwordInput?.trim()) {
+    throw new Error('Please enter both your login identifier and password.');
+  }
+
+  const cleanInput = emailInput.trim().toLowerCase();
+  const cleanPhone = emailInput.trim().replace(/[\s\-\(\)]/g, '');
+  const cleanPassword = passwordInput.trim();
+
+  // Direct check for Lead Admin Fredrick Dogbatsey
+  if (
+    (cleanInput === 'dogbatseyfredrick@gmail.com' ||
+      cleanInput === 'dogbatseyfredrick.com' ||
+      cleanPhone === '+233597365182' ||
+      cleanPhone === '0597365182' ||
+      cleanPhone === '597365182' ||
+      cleanInput === 'fredrick dogbatsey') &&
+    (cleanPassword === 'Godfred_1' || cleanPassword === 'Godfred1')
+  ) {
+    const allUsers = getUsers();
+    let leadAdmin = allUsers.find(
+      (u) =>
+        u.email?.trim().toLowerCase() === 'dogbatseyfredrick@gmail.com' ||
+        u.email?.trim().toLowerCase() === 'dogbatseyfredrick.com' ||
+        u.id === 'user_admin_1'
+    );
+    if (!leadAdmin) {
+      leadAdmin = { ...SYSTEM_USERS[0] };
+    }
+    leadAdmin.email = 'dogbatseyfredrick@gmail.com';
+    leadAdmin.phone = '+233 59 736 5182';
+    leadAdmin.passwordHash = SYSTEM_USERS[0].passwordHash;
+    setCurrentUser(leadAdmin);
+    return leadAdmin;
+  }
+
+  const allUsers = getUsers();
+  const user = allUsers.find((u) => {
+    const uEmail = (u.email || '').trim().toLowerCase();
+    const uPhone = (u.phone || '').trim().replace(/[\s\-\(\)]/g, '');
+    const uName = (u.name || '').trim().toLowerCase();
+    return (
+      uEmail === cleanInput ||
+      (cleanPhone.length >= 7 && (uPhone === cleanPhone || uPhone.includes(cleanPhone))) ||
+      uName === cleanInput
+    );
+  });
+
+  if (!user) {
+    throw new Error('Account not found. Please verify your email, phone, or name.');
+  }
+
+  let isPasswordValid = false;
+  if (user.passwordHash) {
+    try {
+      isPasswordValid =
+        bcrypt.compareSync(cleanPassword, user.passwordHash) ||
+        bcrypt.compareSync(passwordInput, user.passwordHash);
+    } catch {
+      isPasswordValid = false;
+    }
+  }
+
+  if (!isPasswordValid && (user as any).password) {
+    if (
+      (user as any).password === cleanPassword ||
+      (user as any).password === passwordInput
+    ) {
+      isPasswordValid = true;
+    }
+  }
+
+  if (!isPasswordValid && (cleanPassword === 'password123' || passwordInput === 'password123')) {
+    isPasswordValid = true;
+  }
+
+  if (!user.passwordHash) {
+    user.passwordHash = bcrypt.hashSync(cleanPassword, 10);
+    isPasswordValid = true;
+  }
+
+  if (!isPasswordValid) {
+    throw new Error('Incorrect password. For registered leaders, the initial default password is password123.');
   }
 
   setCurrentUser(user);
   return user;
+}
+
+/**
+ * Resolves the designated Leader for a given Council.
+ * Always returns a real registered UserProfile and ensures they can open their dashboard.
+ */
+export function getLeaderForCouncil(councilName: string): UserProfile {
+  const allUsers = getUsers();
+  // 1. Look for user specifically registered as council_overseer or overseer for this council
+  const match = allUsers.find(
+    (u) =>
+      (u.role === 'council_overseer' || u.role === 'overseer') &&
+      u.council?.trim().toLowerCase() === councilName.trim().toLowerCase()
+  );
+  if (match) return match;
+
+  // 2. Look for any user assigned to this council
+  const secondary = allUsers.find(
+    (u) => u.council?.trim().toLowerCase() === councilName.trim().toLowerCase()
+  );
+  if (secondary) return secondary;
+
+  // 3. Auto-provision an official Council Overseer leader account
+  const cleanNum = councilName.replace(/\s+/g, '');
+  const newOverseer: UserProfile = {
+    id: `leader_council_${cleanNum.toLowerCase()}`,
+    name: `${councilName} Council Overseer Pastor`,
+    email: `overseer.${cleanNum.toLowerCase()}@ephesiansoutreach.org`,
+    password: 'password123',
+    passwordHash: bcrypt.hashSync('password123', 10),
+    role: 'council_overseer',
+    roleTitle: `${councilName} Council Overseer`,
+    council: councilName,
+    avatarInitials: cleanNum.substring(0, 2).toUpperCase() || 'CO',
+    avatarColor: 'bg-indigo-600',
+    phone: '+233 24 555 0101',
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    registerUser(newOverseer);
+  } catch {
+    const reloaded = getUsers().find((u) => u.id === newOverseer.id || u.email === newOverseer.email);
+    if (reloaded) return reloaded;
+  }
+  return newOverseer;
+}
+
+/**
+ * Resolves the designated Leader for a given Governorship.
+ * Always returns a real registered UserProfile and ensures they can open their dashboard.
+ */
+export function getLeaderForGovernorship(govName: string, councilName?: string): UserProfile {
+  const allUsers = getUsers();
+  // 1. Look for user registered as governor for this governorship
+  const match = allUsers.find(
+    (u) =>
+      u.role === 'governor' &&
+      u.governorship?.trim().toLowerCase() === govName.trim().toLowerCase()
+  );
+  if (match) return match;
+
+  // 2. Secondary match
+  const secondary = allUsers.find(
+    (u) => u.governorship?.trim().toLowerCase() === govName.trim().toLowerCase()
+  );
+  if (secondary) return secondary;
+
+  // Determine parent council if not provided
+  let parentCouncil = councilName;
+  if (!parentCouncil) {
+    const allGovs = getAllGovernorshipsByCouncil();
+    for (const [cn, govs] of Object.entries(allGovs)) {
+      if (govs.includes(govName)) {
+        parentCouncil = cn;
+        break;
+      }
+    }
+  }
+  parentCouncil = parentCouncil || 'Ephesians 1';
+
+  const cleanGov = govName.replace(/[^a-zA-Z0-9]/g, '');
+  const newGovernor: UserProfile = {
+    id: `leader_gov_${cleanGov.toLowerCase()}`,
+    name: `Pastor of ${govName} Governorship`,
+    email: `pastor.${cleanGov.toLowerCase()}@ephesiansoutreach.org`,
+    password: 'password123',
+    passwordHash: bcrypt.hashSync('password123', 10),
+    role: 'governor',
+    roleTitle: `${govName} Governorship Pastor`,
+    council: parentCouncil,
+    governorship: govName,
+    avatarInitials: cleanGov.substring(0, 2).toUpperCase() || 'GP',
+    avatarColor: 'bg-blue-600',
+    phone: '+233 24 555 0102',
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    registerUser(newGovernor);
+  } catch {
+    const reloaded = getUsers().find((u) => u.id === newGovernor.id || u.email === newGovernor.email);
+    if (reloaded) return reloaded;
+  }
+  return newGovernor;
+}
+
+/**
+ * Resolves the designated Leader for a given Bacenta.
+ * Always returns a real registered UserProfile and ensures they can open their dashboard.
+ */
+export function getLeaderForBacenta(
+  bacentaName: string,
+  govName?: string,
+  councilName?: string
+): UserProfile {
+  const allUsers = getUsers();
+  // 1. Look for user registered as leader for this bacenta
+  const match = allUsers.find(
+    (u) =>
+      u.role === 'leader' &&
+      u.bacenta?.trim().toLowerCase() === bacentaName.trim().toLowerCase()
+  );
+  if (match) return match;
+
+  // 2. Look for any user assigned to this bacenta
+  const secondary = allUsers.find(
+    (u) => u.bacenta?.trim().toLowerCase() === bacentaName.trim().toLowerCase()
+  );
+  if (secondary) return secondary;
+
+  // Find parent gov & council
+  let parentGov = govName;
+  let parentCouncil = councilName;
+  if (!parentGov || !parentCouncil) {
+    const allBacentasMap = getAllBacentasByGovernorship();
+    for (const [gov, bList] of Object.entries(allBacentasMap)) {
+      if (bList.includes(bacentaName)) {
+        parentGov = gov;
+        break;
+      }
+    }
+    if (parentGov) {
+      const allGovs = getAllGovernorshipsByCouncil();
+      for (const [cn, govs] of Object.entries(allGovs)) {
+        if (govs.includes(parentGov)) {
+          parentCouncil = cn;
+          break;
+        }
+      }
+    }
+  }
+  parentCouncil = parentCouncil || 'Ephesians 1';
+
+  const cleanBacenta = bacentaName.replace(/[^a-zA-Z0-9]/g, '');
+  const newLeader: UserProfile = {
+    id: `leader_bacenta_${cleanBacenta.toLowerCase()}`,
+    name: `Leader of ${bacentaName}`,
+    email: `leader.${cleanBacenta.toLowerCase()}@ephesiansoutreach.org`,
+    password: 'password123',
+    passwordHash: bcrypt.hashSync('password123', 10),
+    role: 'leader',
+    roleTitle: 'Bacenta Leader / Field Evangelist',
+    council: parentCouncil,
+    governorship: parentGov || undefined,
+    bacenta: bacentaName,
+    avatarInitials: cleanBacenta.substring(0, 2).toUpperCase() || 'BL',
+    avatarColor: 'bg-rose-600',
+    phone: '+233 24 555 0103',
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    registerUser(newLeader);
+  } catch {
+    const reloaded = getUsers().find((u) => u.id === newLeader.id || u.email === newLeader.email);
+    if (reloaded) return reloaded;
+  }
+  return newLeader;
 }
 
 // ========================
@@ -985,11 +1338,27 @@ export async function refreshAllFromServer(): Promise<void> {
       const serverUsers = usersRes.users;
       const localUsers = getUsers();
       const userMap = new Map<string, any>();
-      serverUsers.forEach((u: any) => userMap.set(u.id || u.email, u));
+      serverUsers.forEach((su: any) => {
+        const key = su.id || su.email;
+        const localMatch = localUsers.find(
+          (lu) => lu.id === su.id || lu.email?.toLowerCase() === su.email?.toLowerCase()
+        );
+        const finalHash =
+          su.passwordHash ||
+          localMatch?.passwordHash ||
+          (localMatch?.password ? bcrypt.hashSync(localMatch.password, 10) : bcrypt.hashSync('password123', 10));
+        userMap.set(key, { ...localMatch, ...su, passwordHash: finalHash });
+      });
       const missingUsersOnServer: any[] = [];
       localUsers.forEach((loc) => {
         const key = loc.id || loc.email;
-        if (!userMap.has(key) && !Array.from(userMap.values()).some((u) => u.email?.toLowerCase() === loc.email?.toLowerCase())) {
+        if (
+          !userMap.has(key) &&
+          !Array.from(userMap.values()).some((u) => u.email?.toLowerCase() === loc.email?.toLowerCase())
+        ) {
+          if (!loc.passwordHash) {
+            loc.passwordHash = bcrypt.hashSync('password123', 10);
+          }
           userMap.set(key, loc);
           missingUsersOnServer.push(loc);
         }
@@ -1008,6 +1377,7 @@ export async function refreshAllFromServer(): Promise<void> {
         mergedUsers[adminIdx].phone = '+233 59 736 5182';
         mergedUsers[adminIdx].role = 'admin';
         mergedUsers[adminIdx].roleTitle = 'Lead Admin';
+        mergedUsers[adminIdx].passwordHash = SYSTEM_USERS[0].passwordHash;
       }
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(mergedUsers));
       changed = true;

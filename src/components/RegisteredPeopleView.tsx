@@ -40,6 +40,9 @@ import {
   getCouncils,
   getGovernorshipsForCouncil,
   getBacentasForGovernorship,
+  getLeaderForCouncil,
+  getLeaderForGovernorship,
+  getLeaderForBacenta,
 } from '../services/storage';
 
 interface Props {
@@ -443,11 +446,60 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                         </a>
                       )}
 
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                        <strong>{u.council}</strong>
-                        {u.governorship && <span> / {u.governorship}</span>}
-                        {u.bacenta && <span> / {u.bacenta}</span>}
+                      <span className="text-slate-400 flex items-center gap-1.5 flex-wrap">
+                        <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onSelectUser) {
+                              const leader = getLeaderForCouncil(u.council);
+                              onSelectUser(leader);
+                            }
+                          }}
+                          className="font-bold text-white hover:text-emerald-400 underline underline-offset-2 transition-colors cursor-pointer"
+                          title={`Click to open ${u.council} Council Overseer account/dashboard`}
+                        >
+                          {u.council}
+                        </button>
+                        {u.governorship && (
+                          <>
+                            <span className="text-slate-600">/</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSelectUser) {
+                                  const leader = getLeaderForGovernorship(u.governorship!, u.council);
+                                  onSelectUser(leader);
+                                }
+                              }}
+                              className="font-semibold text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors cursor-pointer"
+                              title={`Click to open ${u.governorship} Governor account/dashboard`}
+                            >
+                              {u.governorship}
+                            </button>
+                          </>
+                        )}
+                        {u.bacenta && (
+                          <>
+                            <span className="text-slate-600">/</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSelectUser) {
+                                  const leader = getLeaderForBacenta(u.bacenta!, u.governorship, u.council);
+                                  onSelectUser(leader);
+                                }
+                              }}
+                              className="font-semibold text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                              title={`Click to open ${u.bacenta} Leader account/dashboard`}
+                            >
+                              {u.bacenta}
+                            </button>
+                          </>
+                        )}
                       </span>
                     </div>
 
@@ -790,6 +842,25 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                 <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                   <span className="text-slate-400">Email</span>
                   <span className="font-semibold text-slate-200 truncate max-w-[200px]">{inspectedUser.email}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <span className="text-slate-400">Password</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-emerald-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                      {inspectedUser.password || 'password123'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const pass = inspectedUser.password || 'password123';
+                        navigator.clipboard?.writeText(`Email: ${inspectedUser.email}\nPassword: ${pass}`);
+                        alert(`Credentials for ${inspectedUser.name} copied!`);
+                      }}
+                      className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold rounded"
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </div>
                 {inspectedUser.phone && (
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">

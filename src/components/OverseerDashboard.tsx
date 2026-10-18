@@ -49,6 +49,9 @@ import {
   getAllBacentasByGovernorship,
   getBacentasForGovernorship,
   addBacentaToGovernorship,
+  getLeaderForCouncil,
+  getLeaderForGovernorship,
+  getLeaderForBacenta,
 } from '../services/storage';
 import { exportMinistryReportPDF } from '../services/pdfExport';
 import { approveOutreach, subscribeToObjectives, getFieldObjectives } from '../services/realtime';
@@ -61,6 +64,7 @@ interface Props {
   onOpenReportPrint?: () => void;
   onOpenRegisterModal?: () => void;
   onNavigateToForm?: () => void;
+  onSelectUser?: (user: UserProfile) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -70,6 +74,7 @@ export const OverseerDashboard: React.FC<Props> = ({
   onOpenReportPrint,
   onOpenRegisterModal,
   onNavigateToForm,
+  onSelectUser,
   theme = 'dark',
 }) => {
   const councils = getCouncils();
@@ -618,15 +623,21 @@ export const OverseerDashboard: React.FC<Props> = ({
                 <div
                   key={c.council}
                   onClick={() => {
-                    setSelectedCouncil(isSelected ? 'all' : c.council);
-                    setSelectedGovernorship('all');
-                    setSelectedBacenta('all');
+                    if (onSelectUser) {
+                      const leader = getLeaderForCouncil(c.council);
+                      onSelectUser(leader);
+                    } else {
+                      setSelectedCouncil(isSelected ? 'all' : c.council);
+                      setSelectedGovernorship('all');
+                      setSelectedBacenta('all');
+                    }
                   }}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer relative ${
+                  className={`p-4 rounded-xl border transition-all cursor-pointer relative group ${
                     isSelected
                       ? 'bg-emerald-950/40 border-emerald-500 shadow-md ring-1 ring-emerald-500'
-                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-emerald-500/60 hover:bg-slate-800/40'
                   }`}
+                  title={`Click to open ${c.council} Council Overseer account & dashboard`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -649,8 +660,11 @@ export const OverseerDashboard: React.FC<Props> = ({
                   </div>
 
                   {/* Governorships count */}
-                  <div className="mt-2.5 pt-2 border-t border-slate-800/80 text-[11px] text-indigo-400 font-semibold">
-                    {c.governorshipsCount} Governorships
+                  <div className="mt-2.5 pt-2 border-t border-slate-800/80 text-[11px] text-indigo-400 font-semibold flex items-center justify-between">
+                    <span>{c.governorshipsCount} Governorships</span>
+                    <span className="text-[10px] font-bold text-emerald-400 opacity-90 group-hover:underline">
+                      Open Dashboard →
+                    </span>
                   </div>
 
                   <div className="mt-2 flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/60">
@@ -701,14 +715,20 @@ export const OverseerDashboard: React.FC<Props> = ({
               <div
                 key={gov.governorship}
                 onClick={() => {
-                  setSelectedGovernorship(isGovSelected ? 'all' : gov.governorship);
-                  setSelectedBacenta('all');
+                  if (onSelectUser) {
+                    const leader = getLeaderForGovernorship(gov.governorship, gov.council);
+                    onSelectUser(leader);
+                  } else {
+                    setSelectedGovernorship(isGovSelected ? 'all' : gov.governorship);
+                    setSelectedBacenta('all');
+                  }
                 }}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                className={`p-4 rounded-xl border transition-all cursor-pointer group ${
                   isGovSelected
                     ? 'bg-indigo-950/40 border-indigo-500 shadow-md ring-1 ring-indigo-500'
-                    : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40'
+                    : 'bg-slate-950/70 border-slate-800 hover:border-indigo-500/60 hover:bg-slate-800/40'
                 }`}
+                title={`Click to open ${gov.governorship} Governor account & dashboard`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -732,18 +752,27 @@ export const OverseerDashboard: React.FC<Props> = ({
                     <span className="font-semibold text-slate-300">
                       Subordinate Bacentas ({gov.bacentasCount}):
                     </span>
-                    <span className="text-indigo-400 font-semibold text-[10px]">
-                      {isGovSelected ? 'Active Filter' : 'Filter Ledger →'}
+                    <span className="text-emerald-400 font-bold text-[10px] group-hover:underline">
+                      Open Governor Dashboard →
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {gov.bacentas.map((b) => (
-                      <span
+                      <button
                         key={b}
-                        className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onSelectUser) {
+                            const bacentaLeader = getLeaderForBacenta(b, gov.governorship, gov.council);
+                            onSelectUser(bacentaLeader);
+                          }
+                        }}
+                        className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 hover:border-amber-500/60 hover:bg-amber-950/30 text-[10px] text-slate-300 hover:text-amber-300 transition-colors cursor-pointer"
+                        title={`Click to open ${b} Leader account & dashboard`}
                       >
                         {b}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -796,12 +825,20 @@ export const OverseerDashboard: React.FC<Props> = ({
             return (
               <div
                 key={bacenta}
-                onClick={() => setSelectedBacenta(isSelected ? 'all' : bacenta)}
-                className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                onClick={() => {
+                  if (onSelectUser) {
+                    const bacentaLeader = getLeaderForBacenta(bacenta, undefined, parentCouncil);
+                    onSelectUser(bacentaLeader);
+                  } else {
+                    setSelectedBacenta(isSelected ? 'all' : bacenta);
+                  }
+                }}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer group ${
                   isSelected
                     ? 'bg-purple-950/40 border-purple-500 shadow-md ring-1 ring-purple-500'
-                    : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40'
+                    : 'bg-slate-950/70 border-slate-800 hover:border-amber-500/60 hover:bg-slate-800/40'
                 }`}
+                title={`Click to open ${bacenta} Leader account & dashboard`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -818,8 +855,8 @@ export const OverseerDashboard: React.FC<Props> = ({
                 <div className="mt-3 flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">
                   <span>{bacentaEntries.length} Operations</span>
                   <span>{leaders} Leaders</span>
-                  <span className="text-purple-400 font-semibold text-[11px] hover:underline">
-                    {isSelected ? 'Filter Active' : 'Filter Ledger →'}
+                  <span className="text-amber-400 font-bold text-[11px] group-hover:underline">
+                    Open Leader Dashboard →
                   </span>
                 </div>
               </div>

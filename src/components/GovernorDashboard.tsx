@@ -32,6 +32,8 @@ import {
   getBacentasForGovernorship,
   addBacentaToGovernorship,
   getGovernorshipsForCouncil,
+  getLeaderForCouncil,
+  getLeaderForBacenta,
 } from '../services/storage';
 import { exportMinistryReportPDF } from '../services/pdfExport';
 import { OutreachPicturesGallery } from './OutreachPicturesGallery';
@@ -41,6 +43,7 @@ interface Props {
   currentUser: UserProfile;
   onOpenReportPrint?: () => void;
   onNavigateToForm?: () => void;
+  onSelectUser?: (user: UserProfile) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -49,6 +52,7 @@ export const GovernorDashboard: React.FC<Props> = ({
   currentUser,
   onOpenReportPrint,
   onNavigateToForm,
+  onSelectUser,
   theme = 'dark',
 }) => {
   const council = currentUser.council || 'Ephesians 1';
@@ -395,12 +399,20 @@ export const GovernorDashboard: React.FC<Props> = ({
             return (
               <div
                 key={bacenta}
-                onClick={() => setSelectedBacenta(isSelected ? 'all' : bacenta)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                onClick={() => {
+                  if (onSelectUser) {
+                    const bacentaLeader = getLeaderForBacenta(bacenta, governorship, council);
+                    onSelectUser(bacentaLeader);
+                  } else {
+                    setSelectedBacenta(isSelected ? 'all' : bacenta);
+                  }
+                }}
+                className={`p-4 rounded-xl border transition-all cursor-pointer group ${
                   isSelected
                     ? 'bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-500'
-                    : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40'
+                    : 'bg-slate-950/70 border-slate-800 hover:border-amber-500/60 hover:bg-slate-800/40'
                 }`}
+                title={`Click to open ${bacenta} Leader account & dashboard`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -417,8 +429,8 @@ export const GovernorDashboard: React.FC<Props> = ({
                 <div className="mt-3 flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">
                   <span>{bacentaEntries.length} Operations</span>
                   <span>{leaders} Leaders</span>
-                  <span className="text-blue-400 font-semibold text-[11px]">
-                    {isSelected ? 'Selected ✓' : 'Filter Ledger →'}
+                  <span className="text-amber-400 font-bold text-[11px] group-hover:underline">
+                    Open Leader Dashboard →
                   </span>
                 </div>
               </div>

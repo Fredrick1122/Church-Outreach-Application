@@ -259,6 +259,7 @@ export default function App() {
                 currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                onSelectUser={handleSelectUser}
                 theme={theme}
               />
             ) : isCouncilOverseerUser ? (
@@ -268,6 +269,7 @@ export default function App() {
                 currentUser={currentUser!}
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                onSelectUser={handleSelectUser}
               />
             ) : isGeneralOverseerUser ? (
               /* GENERAL OVERSEER DASHBOARD: ACCESS ACROSS BOARD TO ALL COUNCILS */
@@ -277,6 +279,7 @@ export default function App() {
                 onOpenReportPrint={() => setIsPrintModalOpen(true)}
                 onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                 onNavigateToForm={() => setActiveTab('form')}
+                onSelectUser={handleSelectUser}
                 theme={theme}
               />
             ) : isLeaderUser ? (
@@ -344,6 +347,7 @@ export default function App() {
                     onOpenReportPrint={() => setIsPrintModalOpen(true)}
                     onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
                     onNavigateToForm={() => setActiveTab('form')}
+                    onSelectUser={handleSelectUser}
                     theme={theme}
                   />
                 ) : (
@@ -355,6 +359,7 @@ export default function App() {
                     onNavigateToLog={() => setActiveTab('operations')}
                     onNavigateToForm={() => setActiveTab('form')}
                     onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+                    onSelectUser={handleSelectUser}
                     theme={theme}
                   />
                 )}

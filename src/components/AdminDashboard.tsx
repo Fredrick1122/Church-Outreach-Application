@@ -36,6 +36,7 @@ import {
   markAlertRead,
   exportOutreachesToCSV,
   getCouncils,
+  getLeaderForCouncil,
 } from '../services/storage';
 import { generateAnalyticsPDF } from '../services/pdfExport';
 import {
@@ -55,6 +56,7 @@ interface Props {
   onNavigateToLog: () => void;
   onNavigateToForm?: () => void;
   onOpenRegisterModal?: () => void;
+  onSelectUser?: (user: UserProfile) => void;
   theme?: 'dark' | 'light';
 }
 
@@ -66,6 +68,7 @@ export const AdminDashboard: React.FC<Props> = ({
   onNavigateToLog,
   onNavigateToForm,
   onOpenRegisterModal,
+  onSelectUser,
   theme = 'dark',
 }) => {
   // Views: Metrics vs Outreach Pictures
@@ -932,7 +935,17 @@ export const AdminDashboard: React.FC<Props> = ({
                   </tr>
                 ) : (
                   councilLeaderboard.map((row, index) => (
-                    <tr key={row.council} className="hover:bg-slate-800/40">
+                    <tr
+                      key={row.council}
+                      onClick={() => {
+                        if (onSelectUser) {
+                          const leader = getLeaderForCouncil(row.council);
+                          onSelectUser(leader);
+                        }
+                      }}
+                      className="hover:bg-slate-800/60 cursor-pointer transition-colors group"
+                      title={`Click to open ${row.council} Council Overseer account & dashboard`}
+                    >
                       <td className="py-2.5 flex items-center gap-2">
                         <span
                           className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
@@ -945,7 +958,12 @@ export const AdminDashboard: React.FC<Props> = ({
                         >
                           {index + 1}
                         </span>
-                        <span className="font-semibold text-slate-100">{row.council}</span>
+                        <span className="font-semibold text-slate-100 group-hover:text-emerald-400 group-hover:underline transition-colors">
+                          {row.council}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 opacity-0 group-hover:opacity-100 font-semibold transition-opacity hidden sm:inline">
+                          → Open Dashboard
+                        </span>
                       </td>
                       <td className="py-2.5 text-right text-slate-300 tabular-nums">{row.count}</td>
                       <td className="py-2.5 text-right text-slate-300 tabular-nums">{row.leaders}</td>

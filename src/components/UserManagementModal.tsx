@@ -118,10 +118,12 @@ export const UserManagementModal: React.FC<Props> = ({
         ? 'Operations Administrator'
         : 'Bacenta Leader');
 
+    const assignedPassword = passcode.trim() || 'password123';
     const res = registerUser({
       id: `user_${Date.now()}`,
       name: fullName.trim(),
       email: email.trim().toLowerCase(),
+      password: assignedPassword,
       phone: phone.trim() || undefined,
       role,
       roleTitle: title,
@@ -147,7 +149,7 @@ export const UserManagementModal: React.FC<Props> = ({
     const registeredUser = res.user;
     setIsSubmitting(false);
     setSuccessMessage(
-      `Successfully registered ${registeredUser.name} as ${registeredUser.role.toUpperCase()} (${registeredUser.council})!`
+      `Registered ${registeredUser.name} as ${registeredUser.role.toUpperCase()} (${registeredUser.council})! Login Email: "${registeredUser.email}" | Password: "${registeredUser.password || assignedPassword}"`
     );
 
     // Reset fields

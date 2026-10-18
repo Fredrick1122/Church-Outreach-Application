@@ -234,41 +234,59 @@ export const RegisterUserModal: React.FC<Props> = ({
               </p>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-left space-y-1.5 text-slate-300">
-              <p>
-                <strong>Login Email:</strong>{' '}
-                <span className="font-mono text-emerald-300 font-bold">{successUser.email}</span>
-              </p>
-              <p>
-                <strong>Password:</strong>{' '}
-                <span className="font-mono text-white">{successUser.password}</span>
-              </p>
-              <p>
-                <strong>Role & Title:</strong> {successUser.roleTitle}
-              </p>
-              <p>
-                <strong>Assigned Jurisdiction:</strong> {successUser.council}
-                {successUser.governorship ? ` · ${successUser.governorship}` : ''}
-                {successUser.bacenta ? ` · ${successUser.bacenta}` : ''}
-              </p>
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-left space-y-2 text-slate-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Login Identifier / Email</span>
+                  <span className="font-mono text-emerald-300 font-bold text-sm">{successUser.email}</span>
+                </div>
+              </div>
+              <div className="pt-1 border-t border-slate-800/80">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Password</span>
+                <span className="font-mono text-white font-bold text-sm bg-slate-900 px-2 py-0.5 rounded border border-slate-700 inline-block mt-0.5">
+                  {successUser.password || password.trim() || 'password123'}
+                </span>
+              </div>
+              <div className="pt-1 border-t border-slate-800/80">
+                <p>
+                  <strong>Role & Title:</strong> {successUser.roleTitle}
+                </p>
+                <p className="mt-0.5">
+                  <strong>Assigned Jurisdiction:</strong> {successUser.council}
+                  {successUser.governorship ? ` · ${successUser.governorship}` : ''}
+                  {successUser.bacenta ? ` · ${successUser.bacenta}` : ''}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const pass = successUser.password || password.trim() || 'password123';
+                  navigator.clipboard?.writeText(`Email: ${successUser.email}\nPassword: ${pass}`);
+                  alert('Login credentials copied to clipboard!');
+                }}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-semibold rounded-xl"
+              >
+                Copy Credentials
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setSuccessUser(null);
                   setName('');
                   setEmail('');
+                  setPassword('password123');
                 }}
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl"
               >
-                + Register Another Account
+                + Register Another
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md"
               >
                 Done
               </button>

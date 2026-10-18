@@ -10,6 +10,8 @@ import {
   ChevronDown,
   ChevronUp,
   Users,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { loginUser, getUsers } from '../services/storage';
@@ -32,6 +34,7 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [showQuickAccounts, setShowQuickAccounts] = useState(false);
@@ -39,18 +42,17 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
 
   if (!isOpen) return null;
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const user = loginUser(email, password);
+      const user = await loginUser(email, password);
       onSelectUser(user);
       onClose();
-    } catch {
-      // Standard security practice: return uniform Invalid credentials
-      setError('Invalid credentials. Please check your email and password.');
+    } catch (err: any) {
+      setError(err?.message || 'Invalid credentials. Please check your login details.');
     } finally {
       setIsSubmitting(false);
     }
@@ -112,33 +114,33 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
           )}
 
           <form onSubmit={handleLoginSubmit} className="space-y-4">
-            {/* Input 1: Email [type=email] */}
+            {/* Input 1: Identifier (Email, Phone, or Leader Name) */}
             <div>
               <label
                 htmlFor="login-email"
                 className="block text-xs font-bold text-slate-200 mb-1.5"
               >
-                Email
+                Email, Phone, or Leader Name
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
                 <input
                   id="login-email"
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="e.g. leader@ephesians.org"
-                  autoComplete="email"
+                  placeholder="e.g. leader@ephesians.org or name or phone"
+                  autoComplete="username"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 font-medium transition-all"
                 />
               </div>
             </div>
 
-            {/* Input 2: Password [type=password] */}
+            {/* Input 2: Password with Reveal Toggle */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label
@@ -147,22 +149,33 @@ export const LoginAccountSpaceModal: React.FC<Props> = ({
                 >
                   Password
                 </label>
+                <span className="text-[11px] text-slate-400">
+                  Default: <strong className="text-emerald-400 font-mono">password123</strong>
+                </span>
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
                 <input
                   id="login-password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="••••••••"
+                  placeholder="•••••••• or password123"
                   autoComplete="current-password"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 font-medium transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 font-medium transition-all font-mono"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-white p-0.5 rounded transition-colors"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 

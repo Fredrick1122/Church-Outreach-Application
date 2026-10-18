@@ -36,6 +36,8 @@ import {
   getBacentasForGovernorship,
   addBacentaToGovernorship,
   getUsers,
+  getLeaderForGovernorship,
+  getLeaderForBacenta,
 } from '../services/storage';
 import { exportMinistryReportPDF } from '../services/pdfExport';
 import { approveOutreach } from '../services/realtime';
@@ -45,6 +47,7 @@ interface Props {
   currentUser: UserProfile;
   onOpenReportPrint?: () => void;
   onNavigateToForm?: () => void;
+  onSelectUser?: (user: UserProfile) => void;
 }
 
 export const CouncilOverseerDashboard: React.FC<Props> = ({
@@ -52,6 +55,7 @@ export const CouncilOverseerDashboard: React.FC<Props> = ({
   currentUser,
   onOpenReportPrint,
   onNavigateToForm,
+  onSelectUser,
 }) => {
   const council = currentUser.council || 'Ephesians 1';
   const allUsers = getUsers();
@@ -451,7 +455,17 @@ export const CouncilOverseerDashboard: React.FC<Props> = ({
           {governorshipSummaries.map((summary) => (
             <div
               key={summary.governorship}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all shadow-sm flex flex-col justify-between"
+              onClick={() => {
+                if (onSelectUser) {
+                  const governorLeader = getLeaderForGovernorship(summary.governorship, council);
+                  onSelectUser(governorLeader);
+                } else {
+                  setSelectedGovernorship(summary.governorship);
+                  setSelectedBacenta('all');
+                }
+              }}
+              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-indigo-500/70 transition-all shadow-sm flex flex-col justify-between cursor-pointer group"
+              title={`Click to open ${summary.governorship} Governor account & dashboard`}
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -459,7 +473,9 @@ export const CouncilOverseerDashboard: React.FC<Props> = ({
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800">
                       Governorship
                     </span>
-                    <h4 className="text-base font-bold text-white mt-1">{summary.governorship}</h4>
+                    <h4 className="text-base font-bold text-white mt-1 group-hover:text-indigo-300 transition-colors">
+                      {summary.governorship}
+                    </h4>
                     <p className="text-xs text-slate-400">
                       Governor: <strong className="text-slate-200">{summary.governorName}</strong>
                     </p>
@@ -478,7 +494,9 @@ export const CouncilOverseerDashboard: React.FC<Props> = ({
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
                     <span>Subordinate Bacentas ({summary.bacentasCount}):</span>
                     <button
-                      onClick={() => {
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setTargetGovForBacenta(summary.governorship);
                         setIsAddBacentaOpen(true);
                       }}
@@ -492,15 +510,23 @@ export const CouncilOverseerDashboard: React.FC<Props> = ({
                     {summary.bacentas.map((b) => (
                       <button
                         key={b}
-                        onClick={() => {
-                          setSelectedGovernorship(summary.governorship);
-                          setSelectedBacenta(b);
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onSelectUser) {
+                            const bacentaLeader = getLeaderForBacenta(b, summary.governorship, council);
+                            onSelectUser(bacentaLeader);
+                          } else {
+                            setSelectedGovernorship(summary.governorship);
+                            setSelectedBacenta(b);
+                          }
                         }}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
                           selectedBacenta === b
                             ? 'bg-emerald-600 text-white border-emerald-500'
-                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-amber-500 hover:text-amber-300'
                         }`}
+                        title={`Click to open ${b} Leader account & dashboard`}
                       >
                         {b}
                       </button>
@@ -511,16 +537,10 @@ export const CouncilOverseerDashboard: React.FC<Props> = ({
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">{summary.operationsCount} operations logged</span>
-                <button
-                  onClick={() => {
-                    setSelectedGovernorship(summary.governorship);
-                    setSelectedBacenta('all');
-                  }}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 hover:underline"
-                >
-                  <span>Filter to this Governorship</span>
+                <span className="text-xs text-emerald-400 font-bold flex items-center gap-1 group-hover:underline">
+                  <span>Open Governor Dashboard</span>
                   <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+                </span>
               </div>
             </div>
           ))}
