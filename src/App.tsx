@@ -47,7 +47,10 @@ import { PrintableReportModal } from './components/PrintableReportModal';
 import { AccessRestrictedView } from './components/AccessRestrictedView';
 import { LiveNotificationToasts } from './components/LiveNotificationToasts';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
-import { AiScriptureMotivationModal } from './components/AiScriptureMotivationModal';
+import { ScriptureMotivationModal } from './components/ScriptureMotivationModal';
+import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
+import { TermsConditionsModal } from './components/TermsConditionsModal';
+import { Footer } from './components/Footer';
 
 export default function App() {
   const [currentUser, setUserState] = useState<UserProfile | null>(getCurrentUser);
@@ -69,6 +72,8 @@ export default function App() {
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isScriptureModalOpen, setIsScriptureModalOpen] = useState(false);
   const [scriptureInitialTab, setScriptureInitialTab] = useState<'soul_winning' | 'evangelism' | 'shepherding' | 'all'>('soul_winning');
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   // Theme State: White (Light) or Dark Mode
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -202,9 +207,9 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-5">
         {/* Active Leader Session Switcher Banner */}
         {currentUser && currentUser.id !== 'user_admin_1' && currentUser.email?.toLowerCase() !== 'dogbatseyfredrick@gmail.com' && (
-          <div className="mb-4 p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md animate-fadeIn">
+          <div className="mb-4 p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
             <div className="flex items-center gap-2 truncate">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
               <span className="text-emerald-200 truncate">
                 Active Leader Space: <strong className="text-white">{currentUser.name}</strong> ({currentUser.roleTitle} · {currentUser.council})
               </span>
@@ -216,14 +221,14 @@ export default function App() {
                   const leadAdmin = getUsers().find((u) => u.id === 'user_admin_1' || u.email?.toLowerCase() === 'dogbatseyfredrick@gmail.com');
                   if (leadAdmin) handleSelectUser(leadAdmin);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs transition-colors cursor-pointer"
               >
                 ← Return to Lead Admin
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('leader')}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-colors cursor-pointer"
               >
                 Leaders Directory
               </button>
@@ -296,16 +301,16 @@ export default function App() {
             ) : (
               /* ADMIN: FULL ACCESS WITH SWITCHER BETWEEN BACENTA HIERARCHY & ANALYTICS CHARTS */
               <div className="space-y-4">
-                <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-2xl">
+                <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">
                       Admin Command View:
                     </span>
                     <button
                       onClick={() => setAdminViewMode('overseer')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         adminViewMode === 'overseer'
-                          ? 'bg-emerald-600 text-white shadow-sm'
+                          ? 'bg-emerald-600 text-white shadow-xs'
                           : 'bg-slate-800 text-slate-300 hover:text-white'
                       }`}
                     >
@@ -313,9 +318,9 @@ export default function App() {
                     </button>
                     <button
                       onClick={() => setAdminViewMode('analytics')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         adminViewMode === 'analytics'
-                          ? 'bg-emerald-600 text-white shadow-sm'
+                          ? 'bg-emerald-600 text-white shadow-xs'
                           : 'bg-slate-800 text-slate-300 hover:text-white'
                       }`}
                     >
@@ -326,14 +331,14 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setActiveTab('leader')}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
                       <Users className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Registered Leaders ({getUsers().length})</span>
                     </button>
                     <button
                       onClick={() => setIsRegisterModalOpen(true)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors cursor-pointer"
                     >
                       + Register Leadership Account
                     </button>
@@ -477,6 +482,46 @@ export default function App() {
         }}
       />
 
+      {/* Institutional Ministry Footer */}
+      <Footer
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenTerms={() => setIsTermsOpen(true)}
+        onOpenScriptures={() => handleOpenScriptures('soul_winning')}
+        theme={theme}
+      />
+
+      {/* Real-time Notification Center Modal Drawer */}
+      <NotificationCenterModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+        notifications={notifications}
+        currentUser={currentUser}
+        presenceCount={presenceCount}
+        onNavigateToTab={(tab) => {
+          setIsNotificationModalOpen(false);
+          setActiveTab(tab);
+        }}
+      />
+
+      {/* Ministry Login & Account Space Modal */}
+      <LoginAccountSpaceModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        currentUser={currentUser}
+        onSelectUser={handleSelectUser}
+        onLogout={handleLogout}
+      />
+
+      {/* Admin User Registration Modal (Register Overseer / Governor) */}
+      <RegisterUserModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        currentUser={currentUser}
+        onUserRegistered={(newUser) => {
+          handleSelectUser(newUser);
+        }}
+      />
+
       {/* Official Printable Ministry Report */}
       <PrintableReportModal
         isOpen={isPrintModalOpen}
@@ -485,12 +530,27 @@ export default function App() {
         currentUser={currentUser}
       />
 
-      {/* AI Pop-up Scripture Motivation (Evangelism, Soul Winning, Shepherding) */}
-      <AiScriptureMotivationModal
+      {/* Holy Scripture & Pastoral Exhortation Modal */}
+      <ScriptureMotivationModal
         isOpen={isScriptureModalOpen}
         onClose={() => setIsScriptureModalOpen(false)}
         initialTab={scriptureInitialTab}
         totalSoulsHarvested={outreaches.reduce((sum, o) => sum + (o.soulsWonCount || 0), 0)}
+        theme={theme}
+      />
+
+      {/* Official Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        theme={theme}
+      />
+
+      {/* Official Terms & Conditions Modal */}
+      <TermsConditionsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+        theme={theme}
       />
     </div>
   );

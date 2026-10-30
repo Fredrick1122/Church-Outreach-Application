@@ -334,25 +334,22 @@ export const OverseerDashboard: React.FC<Props> = ({
           </div>
           <button
             onClick={() => setPdfSuccessMessage(null)}
-            className="text-emerald-400 hover:text-white text-xs font-bold"
+            className="text-emerald-400 hover:text-white text-xs font-bold p-1 rounded-md"
+            aria-label="Dismiss message"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* JURISDICTION HEADER */}
-      <div className={`bg-gradient-to-r ${
-        isCouncilSpecific
-          ? 'from-slate-900 via-slate-900 to-indigo-950/50'
-          : 'from-slate-900 via-slate-900 to-emerald-950/40'
-      } rounded-2xl border border-slate-800 p-6 sm:p-7 shadow-xl`}>
+      <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 sm:p-7 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-start gap-4">
             <AppLogo size="lg" />
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5">
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
                   isCouncilSpecific
                     ? 'bg-indigo-950 text-indigo-400 border border-indigo-800'
                     : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
@@ -360,7 +357,7 @@ export const OverseerDashboard: React.FC<Props> = ({
                   <Shield className="w-3 h-3" />
                   {isCouncilSpecific ? 'Council Overseer Jurisdiction' : 'General Overseer Jurisdiction'}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
                   {isCouncilSpecific ? `${assignedCouncil} Solely` : 'All 5 Councils (Ephesians 1 to 5)'}
                 </span>
               </div>
@@ -501,14 +498,14 @@ export const OverseerDashboard: React.FC<Props> = ({
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Subordinate Bacentas</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-950/80 border border-purple-800/80 text-purple-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-teal-950/80 border border-teal-800/80 text-teal-400 flex items-center justify-center">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             {totalBacentasCount}
           </div>
-          <p className="text-[11px] text-purple-400 font-medium mt-1">
+          <p className="text-[11px] text-teal-400 font-medium mt-1">
             {isCouncilSpecific ? `Under ${assignedCouncil}` : 'Under 5 Councils'}
           </p>
         </div>
@@ -577,7 +574,7 @@ export const OverseerDashboard: React.FC<Props> = ({
           )}
 
           {isCouncilSpecific && (
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-950 text-indigo-300 border border-indigo-800">
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-950 text-indigo-300 border border-indigo-800">
               Sole Council Access
             </span>
           )}
@@ -605,7 +602,7 @@ export const OverseerDashboard: React.FC<Props> = ({
                 </div>
                 <div className="text-center px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-slate-400 block text-[10px]">Bacentas</span>
-                  <span className="font-bold text-purple-400 text-sm">{(allBacentasMap[assignedCouncil] || []).length}</span>
+                  <span className="font-bold text-teal-400 text-sm">{(allBacentasMap[assignedCouncil] || []).length}</span>
                 </div>
                 <div className="text-center px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-slate-400 block text-[10px]">Souls Won</span>
@@ -787,7 +784,7 @@ export const OverseerDashboard: React.FC<Props> = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-              <Layers className="w-5 h-5 text-purple-400" />
+              <Layers className="w-5 h-5 text-teal-400" />
               <span>
                 Bacenta Matrix{' '}
                 {selectedCouncil !== 'all' ? `(${selectedCouncil} Only)` : '(All Governorships)'}
@@ -835,7 +832,7 @@ export const OverseerDashboard: React.FC<Props> = ({
                 }}
                 className={`p-3.5 rounded-xl border transition-all cursor-pointer group ${
                   isSelected
-                    ? 'bg-purple-950/40 border-purple-500 shadow-md ring-1 ring-purple-500'
+                    ? 'bg-teal-950/40 border-teal-500 shadow-md ring-1 ring-teal-500'
                     : 'bg-slate-950/70 border-slate-800 hover:border-amber-500/60 hover:bg-slate-800/40'
                 }`}
                 title={`Click to open ${bacenta} Leader account & dashboard`}
@@ -1062,12 +1059,12 @@ export const OverseerDashboard: React.FC<Props> = ({
                       {/* Status */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         {isApproved ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
                             <CheckCircle2 className="w-3 h-3" />
                             Approved
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
                             <Clock className="w-3 h-3" />
                             Pending Review
                           </span>
@@ -1121,8 +1118,9 @@ export const OverseerDashboard: React.FC<Props> = ({
               <button
                 onClick={() => setIsAddBacentaOpen(false)}
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
+                aria-label="Close modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1224,8 +1222,9 @@ export const OverseerDashboard: React.FC<Props> = ({
               <button
                 onClick={() => setSelectedEntryForDetails(null)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
+                aria-label="Close modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

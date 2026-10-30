@@ -17,15 +17,12 @@ export const AccessRestrictedView: React.FC<Props> = ({
 }) => {
   return (
     <div className="max-w-xl mx-auto py-12 px-4 text-center">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
-        {/* Glow accent */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-500 rounded-full" />
-
-        <div className="w-16 h-16 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-400 flex items-center justify-center mx-auto mb-6 shadow-inner">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-10 shadow-sm relative overflow-hidden">
+        <div className="w-16 h-16 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-400 flex items-center justify-center mx-auto mb-6">
           <ShieldAlert className="w-8 h-8" />
         </div>
 
-        <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-400 bg-rose-950/50 border border-rose-800/50 rounded-full mb-3">
+        <span className="inline-block px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-400 bg-rose-950/50 border border-rose-800/50 rounded-md mb-3">
           {currentUser ? 'Role Authorization Required' : 'Login Required'}
         </span>
 

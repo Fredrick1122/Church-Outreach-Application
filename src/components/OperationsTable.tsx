@@ -275,7 +275,7 @@ export const OperationsTable: React.FC<Props> = ({
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                               row.outreachLevel === 'Overseership'
-                                ? 'bg-purple-950 text-purple-300 border border-purple-800'
+                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
                                 : row.outreachLevel === 'Governorships'
                                 ? 'bg-blue-950 text-blue-300 border border-blue-800'
                                 : 'bg-amber-950 text-amber-300 border border-amber-800'
@@ -496,7 +496,7 @@ export const OperationsTable: React.FC<Props> = ({
                                             {c.fullName}
                                           </td>
                                           <td className="py-2 px-3 text-slate-300 font-mono">
-                                            {c.phone || '—'}
+                                            {c.phone || '-'}
                                           </td>
                                           <td className="py-2 px-3 text-slate-400">
                                             {c.gender} · {c.ageGroup}

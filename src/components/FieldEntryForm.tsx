@@ -27,6 +27,7 @@ import {
   Image as ImageIcon,
   Flame,
   BookOpen,
+  X,
 } from 'lucide-react';
 import { AppLogo } from './AppLogo';
 import confetti from 'canvas-confetti';
@@ -913,7 +914,7 @@ export const FieldEntryForm: React.FC<Props> = ({
             <div>
               <label className="block text-sm font-bold text-slate-100 flex items-center gap-2">
                 <span>Attach Outreach Pictures & Converts Documents</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-800 text-[10px] text-emerald-400 font-semibold">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-950 border border-emerald-800 text-[10px] text-emerald-400 font-semibold">
                   Photo Evidence
                 </span>
               </label>
@@ -1133,7 +1134,7 @@ export const FieldEntryForm: React.FC<Props> = ({
                 onClick={() => setShowConvertModal(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

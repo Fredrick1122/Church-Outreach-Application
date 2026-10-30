@@ -131,7 +131,7 @@ export const UserManagementModal: React.FC<Props> = ({
       bacenta: role === 'leader' ? assignedBacenta || undefined : undefined,
       avatarColor:
         role === 'overseer'
-          ? 'bg-purple-600'
+          ? 'bg-teal-600'
           : role === 'governor'
           ? 'bg-indigo-600'
           : role === 'admin'
@@ -275,11 +275,11 @@ export const UserManagementModal: React.FC<Props> = ({
                     onClick={() => handleRoleChange('overseer')}
                     className={`p-3 rounded-2xl border text-left transition-all flex flex-col gap-1.5 ${
                       role === 'overseer'
-                        ? 'border-purple-500 bg-purple-950/40 text-purple-200 ring-1 ring-purple-500 shadow-sm'
+                        ? 'border-teal-500 bg-teal-950/40 text-teal-200 ring-1 ring-teal-500 shadow-sm'
                         : 'border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-slate-300'
                     }`}
                   >
-                    <Crown className="w-4 h-4 text-purple-400" />
+                    <Crown className="w-4 h-4 text-teal-400" />
                     <span className="text-xs font-bold text-white">Overseer</span>
                     <span className="text-[10px] text-slate-400">All Governorships (Ephesians 1-6)</span>
                   </button>
@@ -412,8 +412,8 @@ export const UserManagementModal: React.FC<Props> = ({
                   </p>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-800/80 text-xs text-purple-200 flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-purple-400 shrink-0" />
+                <div className="p-3 rounded-xl bg-teal-950/40 border border-teal-800/80 text-xs text-teal-200 flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-teal-400 shrink-0" />
                   <span>
                     As an <strong>Overseer</strong>, this user has multi-council oversight and will be able to see all entries and database for each bacenta under <strong>all 6 Governorships (Ephesians 1 to 6)</strong>.
                   </span>
@@ -515,7 +515,7 @@ export const UserManagementModal: React.FC<Props> = ({
                             <span
                               className={`text-[10px] font-extrabold px-2 py-0.5 rounded border uppercase ${
                                 u.role === 'overseer'
-                                  ? 'bg-purple-950 text-purple-300 border-purple-800'
+                                  ? 'bg-teal-950 text-teal-300 border-teal-800'
                                   : u.role === 'governor'
                                   ? 'bg-indigo-950 text-indigo-300 border-indigo-800'
                                   : u.role === 'admin'

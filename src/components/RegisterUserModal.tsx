@@ -331,11 +331,11 @@ export const RegisterUserModal: React.FC<Props> = ({
                     onClick={() => handleRoleChange('general_overseer')}
                     className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
                       role === 'general_overseer'
-                        ? 'bg-purple-950/80 border-purple-500 text-purple-300 shadow-xs'
+                        ? 'bg-teal-950/80 border-teal-500 text-teal-300 shadow-xs'
                         : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <Sparkles className="w-4 h-4 mx-auto mb-1 text-purple-400" />
+                    <Shield className="w-4 h-4 mx-auto mb-1 text-teal-400" />
                     <span>General Overseer</span>
                     <span className="block text-[9px] font-normal text-slate-400 mt-0.5">
                       All Councils

@@ -176,9 +176,9 @@ export function generateAnalyticsPDF(data: PDFExportData): void {
       label: 'LEADERS',
       value: data.kpis.totalLeadersEngaged.toString(),
       subtext: 'Member turnouts',
-      bgColor: [250, 245, 255], // purple-50
-      borderColor: [168, 85, 247], // purple-500
-      textColor: [107, 33, 168],
+      bgColor: [240, 253, 250], // teal-50
+      borderColor: [13, 148, 136], // teal-600
+      textColor: [15, 118, 110],
     },
     {
       label: 'AVG YIELD',
@@ -470,7 +470,7 @@ export function generateAnalyticsPDF(data: PDFExportData): void {
     doc.setFontSize(8);
     if (index === 0 && row.souls > 0) {
       doc.setTextColor(217, 119, 6); // amber gold
-      doc.text(`#${index + 1} ★`, tableX + 12, y2 + 14);
+      doc.text(`#${index + 1} (Lead)`, tableX + 12, y2 + 14);
     } else {
       doc.setTextColor(100, 116, 139);
       doc.text(`#${index + 1}`, tableX + 12, y2 + 14);

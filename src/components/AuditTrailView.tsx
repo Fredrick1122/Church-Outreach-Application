@@ -51,7 +51,7 @@ export const AuditTrailView: React.FC<Props> = ({ currentUser }) => {
                 {log.action === 'CREATE' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                 {log.action === 'UPDATE' && <RefreshCw className="w-4 h-4 text-amber-400" />}
                 {log.action === 'DELETE' && <KeyRound className="w-4 h-4 text-rose-400" />}
-                {log.action === 'OFFLINE_CACHE' && <Database className="w-4 h-4 text-purple-400" />}
+                {log.action === 'OFFLINE_CACHE' && <Database className="w-4 h-4 text-teal-400" />}
               </div>
 
               <div className="flex-1">

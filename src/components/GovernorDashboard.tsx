@@ -19,6 +19,7 @@ import {
   Lock,
   Camera,
   Image as ImageIcon,
+  X,
 } from 'lucide-react';
 import { AppLogo } from './AppLogo';
 import {
@@ -188,25 +189,26 @@ export const GovernorDashboard: React.FC<Props> = ({
           </div>
           <button
             onClick={() => setPdfSuccessMessage(null)}
-            className="text-blue-400 hover:text-white text-xs font-bold"
+            className="text-blue-400 hover:text-white text-xs font-bold p-1 rounded-md"
+            aria-label="Dismiss message"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* GOVERNORSHIP BANNER & SECURITY SCOPE */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-blue-950/40 rounded-2xl border border-slate-800 p-6 sm:p-7 shadow-xl">
+      <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 sm:p-7 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-start gap-4">
             <AppLogo size="lg" />
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-950 text-blue-400 border border-blue-800 flex items-center gap-1.5">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-blue-950 text-blue-400 border border-blue-800 flex items-center gap-1.5">
                   <Building2 className="w-3 h-3" />
                   Governorship Authorization
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
                   <Lock className="w-3 h-3 text-emerald-400" />
                   Sole Access to {governorship} ({council})
                 </span>
@@ -328,14 +330,14 @@ export const GovernorDashboard: React.FC<Props> = ({
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-sm">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Subordinate Bacentas</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-950/80 border border-purple-800/80 text-purple-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-blue-950/80 border border-blue-800/80 text-blue-400 flex items-center justify-center">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             {myBacentas.length}
           </div>
-          <p className="text-[11px] text-purple-400 font-medium mt-1">Under your pastoral charge</p>
+          <p className="text-[11px] text-blue-400 font-medium mt-1">Under your pastoral charge</p>
         </div>
 
         {/* Leaders Mobilized */}
@@ -583,12 +585,12 @@ export const GovernorDashboard: React.FC<Props> = ({
                       {/* Status */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         {isApproved ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
                             <CheckCircle2 className="w-3 h-3" />
                             Approved
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">
                             <Clock className="w-3 h-3" />
                             Pending Review
                           </span>
@@ -631,8 +633,9 @@ export const GovernorDashboard: React.FC<Props> = ({
               <button
                 onClick={() => setIsAddBacentaOpen(false)}
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
+                aria-label="Close modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -697,8 +700,9 @@ export const GovernorDashboard: React.FC<Props> = ({
               <button
                 onClick={() => setSelectedEntryForDetails(null)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
+                aria-label="Close modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

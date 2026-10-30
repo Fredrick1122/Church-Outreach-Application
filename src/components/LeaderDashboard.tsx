@@ -22,6 +22,7 @@ import {
   Building2,
   Camera,
   ExternalLink,
+  X,
 } from 'lucide-react';
 import { AppLogo } from './AppLogo';
 import {
@@ -171,7 +172,7 @@ export const LeaderDashboard: React.FC<Props> = ({
                 {currentUser.name}
               </h1>
               <span
-                className={`text-[11px] font-extrabold px-3 py-0.5 rounded-full border uppercase tracking-wider ${tier.badgeBg} ${tier.badgeColor} ${tier.badgeBorder}`}
+                className={`text-[11px] font-extrabold px-3 py-0.5 rounded-md border uppercase tracking-wider ${tier.badgeBg} ${tier.badgeColor} ${tier.badgeBorder}`}
               >
                 Level {tier.level} · {currentUser.roleTitle || 'Bacenta Leader'}
               </span>
@@ -283,8 +284,8 @@ export const LeaderDashboard: React.FC<Props> = ({
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400">Born Again</span>
-            <Flame className="w-4 h-4 text-purple-400" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Born Again</span>
+            <Flame className="w-4 h-4 text-amber-400" />
           </div>
           <p className="text-2xl sm:text-3xl font-black text-white">{totalBornAgain}</p>
           <p className="text-[11px] text-slate-500 mt-1">Confirmed Conversions</p>
@@ -446,7 +447,7 @@ export const LeaderDashboard: React.FC<Props> = ({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-0.5 rounded-full">
+                        <span className="text-xs font-black text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-0.5 rounded-md">
                           {o.outreachType}
                         </span>
                         <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
@@ -462,7 +463,7 @@ export const LeaderDashboard: React.FC<Props> = ({
 
                     <div className="text-right shrink-0">
                       <span
-                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${
                           o.syncStatus === 'synced'
                             ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                             : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
@@ -481,7 +482,7 @@ export const LeaderDashboard: React.FC<Props> = ({
                     </div>
                     <div className="p-2 rounded-xl bg-slate-950/60 border border-slate-800">
                       <span className="text-[10px] text-slate-400 uppercase block font-semibold">Converts</span>
-                      <span className="text-base font-black text-purple-400">{o.converts?.length || 0}</span>
+                      <span className="text-base font-black text-amber-400">{o.converts?.length || 0}</span>
                     </div>
                     <div className="p-2 rounded-xl bg-slate-950/60 border border-slate-800">
                       <span className="text-[10px] text-slate-400 uppercase block font-semibold">Leaders</span>
@@ -563,7 +564,7 @@ export const LeaderDashboard: React.FC<Props> = ({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="font-bold text-sm text-white truncate">{c.fullName}</h4>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                       {c.decision}
                     </span>
                   </div>
@@ -690,9 +691,11 @@ export const LeaderDashboard: React.FC<Props> = ({
               </h3>
               <button
                 onClick={() => setSelectedOutreachForPhotos(null)}
-                className="text-slate-400 hover:text-white text-sm font-bold"
+                className="text-slate-400 hover:text-white text-xs font-bold flex items-center gap-1.5 p-1 rounded-md"
+                aria-label="Close photos"
               >
-                ✕ Close
+                <X className="w-4 h-4" />
+                <span>Close</span>
               </button>
             </div>
             <OutreachPicturesGallery

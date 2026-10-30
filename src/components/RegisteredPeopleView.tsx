@@ -204,7 +204,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                 }`}>
                   Registered Leaders & Hierarchy Directory
                 </h1>
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 uppercase tracking-wider">
                   Admin Authority
                 </span>
               </div>
@@ -254,10 +254,10 @@ export const RegisteredPeopleView: React.FC<Props> = ({
           </div>
 
           <div className={`p-3.5 rounded-2xl border text-center ${
-            theme === 'light' ? 'bg-purple-50/50 border-purple-200' : 'bg-purple-950/30 border-purple-800/50'
+            theme === 'light' ? 'bg-teal-50/50 border-teal-200' : 'bg-teal-950/30 border-teal-800/50'
           }`}>
-            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">Gen. Overseers (L4)</span>
-            <span className="text-xl font-extrabold text-purple-300 mt-0.5 block">{genCount}</span>
+            <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider block">Gen. Overseers (L4)</span>
+            <span className="text-xl font-extrabold text-teal-300 mt-0.5 block">{genCount}</span>
           </div>
 
           <div className={`p-3.5 rounded-2xl border text-center ${
@@ -407,7 +407,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                       </h4>
 
                       {/* Hierarchy Badge */}
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${tier.badgeBg} ${tier.badgeColor} ${tier.badgeBorder}`}>
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border uppercase tracking-wider ${tier.badgeBg} ${tier.badgeColor} ${tier.badgeBorder}`}>
                         Level {tier.level} · {tier.role === 'admin' ? (isLeadAdmin ? 'Lead Admin' : 'Admin') : tier.label}
                       </span>
 
@@ -673,7 +673,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${t.badgeBg} ${t.badgeColor} border ${t.badgeBorder}`}>
+                          <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${t.badgeBg} ${t.badgeColor} border ${t.badgeBorder}`}>
                             Level {t.level}
                           </span>
                           <div>
@@ -815,7 +815,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                 <div className="min-w-0">
                   <h4 className="font-extrabold text-white text-base truncate">{inspectedUser.name}</h4>
                   <p className="text-xs text-emerald-400 font-semibold">{inspectedUser.roleTitle}</p>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 mt-1 inline-block">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 mt-1 inline-block">
                     Level {getHierarchyTier(inspectedUser.role).level} · {getHierarchyTier(inspectedUser.role).label}
                   </span>
                 </div>

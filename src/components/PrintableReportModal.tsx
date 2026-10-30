@@ -266,7 +266,7 @@ export const PrintableReportModal: React.FC<Props> = ({
                         {row.soulsWonCount}
                       </td>
                       <td className="py-2 px-3 text-slate-400 print:text-slate-500 truncate max-w-[140px]">
-                        {row.locationArea || '—'}
+                        {row.locationArea || '-'}
                       </td>
                     </tr>
                   ))

@@ -66,7 +66,7 @@ export const NotificationCenterModal: React.FC<Props> = ({
               <Bell className="w-4 h-4 text-emerald-400" />
               <h3 className="font-bold text-white text-base">Ministry Real-Time Alerts</h3>
               {unreadCount > 0 && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-600 text-white">
                   {unreadCount} new
                 </span>
               )}

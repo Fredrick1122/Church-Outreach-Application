@@ -222,7 +222,7 @@ export const OutreachPicturesGallery: React.FC<Props> = ({
                 {resolvedTitle}
               </h3>
               <span
-                className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
                   isLight
                     ? 'bg-emerald-100 text-emerald-700'
                     : 'bg-emerald-950 text-emerald-400 border border-emerald-800'

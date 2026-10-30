@@ -10,6 +10,7 @@ import {
   LogIn,
   Sparkles,
   Flame,
+  BookOpen,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -194,10 +195,14 @@ export const Navbar: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => onOpenScriptureMotivation('soul_winning')}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/35 hover:to-amber-600/35 border border-amber-500/50 text-amber-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer"
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors shrink-0 cursor-pointer ${
+                    theme === 'light'
+                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                  }`}
                   title="Open Scriptures on Soul Winning"
                 >
-                  <Flame className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
+                  <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span className="hidden sm:inline">Soul Winning</span>
                   <span className="sm:hidden">Souls</span>
                 </button>
@@ -205,10 +210,14 @@ export const Navbar: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => onOpenScriptureMotivation('evangelism')}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-600/20 hover:from-emerald-500/35 hover:to-teal-600/35 border border-emerald-500/50 text-emerald-300 hover:text-white transition-all text-xs font-bold shadow-xs shrink-0 cursor-pointer"
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors shrink-0 cursor-pointer ${
+                    theme === 'light'
+                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                  }`}
                   title="Open Scriptures on Evangelism"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse shrink-0" />
+                  <BookOpen className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   <span className="hidden sm:inline">Evangelism</span>
                   <span className="sm:hidden">Evangelism</span>
                 </button>

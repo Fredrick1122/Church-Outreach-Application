@@ -22,6 +22,7 @@ import {
   UserPlus,
   Image as ImageIcon,
   Target,
+  X,
 } from 'lucide-react';
 import {
   OutreachEntry,
@@ -310,9 +311,10 @@ export const AdminDashboard: React.FC<Props> = ({
           </div>
           <button
             onClick={() => setPdfSuccessMessage(null)}
-            className="text-slate-400 hover:text-white text-xs px-2 py-0.5"
+            className="text-slate-400 hover:text-white text-xs p-1 rounded-md"
+            aria-label="Dismiss message"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -444,7 +446,7 @@ export const AdminDashboard: React.FC<Props> = ({
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Database is Clean — Ready for First Entry</h3>
+              <h3 className="text-sm font-bold text-white">Database is Clean - Ready for First Entry</h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 All sample records have been cleared. Submit your first field outreach using the <strong>Field Entry</strong> form to test real-time analytics and charts!
               </p>
@@ -770,13 +772,13 @@ export const AdminDashboard: React.FC<Props> = ({
         <div className="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Leaders Mobilized</span>
-            <Users className="w-4 h-4 text-purple-400" />
+            <Users className="w-4 h-4 text-teal-400" />
           </div>
           <div className="mt-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-white tabular-nums">
               {totalLeadersEngaged}
             </span>
-            <p className="text-[11px] text-purple-300 font-medium mt-0.5">Member turnouts</p>
+            <p className="text-[11px] text-teal-300 font-medium mt-0.5">Member turnouts</p>
           </div>
         </div>
 
@@ -1040,8 +1042,9 @@ export const AdminDashboard: React.FC<Props> = ({
               <button
                 onClick={() => setShowAlertConfig(false)}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800"
+                aria-label="Close modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-6 space-y-4">

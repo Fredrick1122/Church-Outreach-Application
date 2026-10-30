@@ -93,9 +93,9 @@ export const HIERARCHY_TIERS: HierarchyTier[] = [
     role: 'general_overseer',
     level: 4,
     label: 'General Overseer',
-    badgeColor: 'text-purple-300',
-    badgeBg: 'bg-purple-950/60',
-    badgeBorder: 'border-purple-800/80',
+    badgeColor: 'text-teal-300',
+    badgeBg: 'bg-teal-950/60',
+    badgeBorder: 'border-teal-800/80',
     description: 'Apostolic oversight across all Councils & Governorships',
   },
   {

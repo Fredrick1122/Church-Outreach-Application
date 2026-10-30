@@ -125,7 +125,7 @@ export const LeaderTrackingModal: React.FC<Props> = ({
 
               <div className="text-right">
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  className={`text-xs px-2 py-0.5 rounded-md font-medium ${
                     lead.isPresent
                       ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
                       : 'bg-slate-800 text-slate-400 border border-slate-700'

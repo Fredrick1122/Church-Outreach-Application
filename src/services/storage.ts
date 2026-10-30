@@ -417,7 +417,7 @@ export function updateUserHierarchy(
 
   // Set avatar color matching tier
   if (newRole === 'admin') targetUser.avatarColor = 'bg-emerald-600';
-  else if (newRole === 'general_overseer') targetUser.avatarColor = 'bg-purple-600';
+  else if (newRole === 'general_overseer') targetUser.avatarColor = 'bg-teal-600';
   else if (newRole === 'council_overseer' || newRole === 'overseer') targetUser.avatarColor = 'bg-indigo-600';
   else if (newRole === 'governor') targetUser.avatarColor = 'bg-blue-600';
   else targetUser.avatarColor = 'bg-amber-600';
