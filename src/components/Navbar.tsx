@@ -75,18 +75,19 @@ export const Navbar: React.FC<Props> = ({
           ? 'bg-white/95 border-slate-200 text-slate-900 shadow-xs'
           : 'bg-slate-900/95 border-slate-800 text-slate-100'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4 overflow-hidden">
           {/* Zone 1: Single text element wordmark */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <AppLogo size="md" allowUpload={true} theme={theme} />
+          <div className="flex items-center gap-2 shrink min-w-0">
+            <AppLogo size="sm" allowUpload={true} theme={theme} />
             <button
               type="button"
               onClick={() => onSelectTab('form')}
-              className={`text-lg sm:text-xl font-extrabold tracking-tight whitespace-nowrap shrink-0 hover:opacity-90 transition-opacity cursor-pointer ${
+              className={`text-base sm:text-xl font-extrabold tracking-tight truncate hover:opacity-90 transition-opacity cursor-pointer ${
                 theme === 'light' ? 'text-slate-900' : 'text-white'
               }`}
             >
-              Ephesians Outreach
+              <span className="hidden sm:inline">Ephesians Outreach</span>
+              <span className="sm:hidden">Ephesians</span>
             </button>
           </div>
 
@@ -167,13 +168,13 @@ export const Navbar: React.FC<Props> = ({
           )}
 
           {/* Zone 3: Actions, Motivation, Theme Toggle & Leadership Login */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* White / Dark Mode Toggle */}
             {onToggleTheme && (
               <button
                 type="button"
                 onClick={onToggleTheme}
-                className={`p-2 rounded-xl border transition-colors shrink-0 flex items-center justify-center cursor-pointer ${
+                className={`p-1.5 sm:p-2 rounded-lg border transition-colors shrink-0 flex items-center justify-center cursor-pointer ${
                   theme === 'light'
                     ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
                     : 'border-slate-700/80 bg-slate-800/80 hover:bg-slate-800 text-amber-300'
@@ -189,9 +190,9 @@ export const Navbar: React.FC<Props> = ({
               </button>
             )}
 
-            {/* Live Scripture Tabs: Soul Winning & Evangelism */}
+            {/* Live Scripture Tabs: Soul Winning & Evangelism (Desktop & Tablet) */}
             {onOpenScriptureMotivation && (
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="hidden md:flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => onOpenScriptureMotivation('soul_winning')}
@@ -229,7 +230,7 @@ export const Navbar: React.FC<Props> = ({
                 {/* Real-time Notification Center Bell */}
                 <button
                   onClick={onOpenNotifications}
-                  className={`relative p-2 rounded-xl border transition-colors shrink-0 cursor-pointer ${
+                  className={`relative p-1.5 sm:p-2 rounded-lg border transition-colors shrink-0 cursor-pointer ${
                     theme === 'light'
                       ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
                       : 'border-slate-700/80 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white'
@@ -249,7 +250,7 @@ export const Navbar: React.FC<Props> = ({
 
                 <button
                   onClick={onOpenAccountSwitcher}
-                  className={`flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl border transition-colors shrink-0 cursor-pointer ${
+                  className={`flex items-center gap-1.5 sm:gap-2 p-1 sm:px-3 sm:py-1.5 rounded-lg border transition-colors shrink-0 cursor-pointer ${
                     theme === 'light'
                       ? 'border-slate-300 bg-slate-100 hover:bg-slate-200'
                       : 'border-slate-700/80 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800'
@@ -257,7 +258,7 @@ export const Navbar: React.FC<Props> = ({
                   title="Active leadership session"
                 >
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold ${currentUser.avatarColor}`}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${currentUser.avatarColor}`}
                   >
                     {currentUser.avatarInitials}
                   </div>
@@ -284,7 +285,7 @@ export const Navbar: React.FC<Props> = ({
                 {onLogout && (
                   <button
                     onClick={onLogout}
-                    className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-rose-800/50 hover:border-rose-700 bg-rose-950/30 hover:bg-rose-950/60 text-rose-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+                    className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-rose-800/50 hover:border-rose-700 bg-rose-950/30 hover:bg-rose-950/60 text-rose-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
                     title="Log Out to Public Outreach Upload Interface"
                   >
                     <LogOut className="w-3.5 h-3.5" />
@@ -297,7 +298,7 @@ export const Navbar: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onOpenAccountSwitcher}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950 transition-all shrink-0 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950 transition-all shrink-0 cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>Login</span>

@@ -216,28 +216,28 @@ export const LeaderDashboard: React.FC<Props> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap z-10 w-full sm:w-auto">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 z-10 w-full sm:w-auto">
           {onNavigateToForm && (
             <button
               onClick={onNavigateToForm}
-              className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 flex items-center gap-2 transition-all cursor-pointer"
+              className="justify-center px-3 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>+ Submit Outreach Form</span>
+              <Plus className="w-4 h-4 shrink-0" />
+              <span className="truncate">+ Submit Form</span>
             </button>
           )}
 
           <button
             onClick={handleExportPDF}
-            className={`px-3.5 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`justify-center px-3 py-2.5 rounded-2xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               theme === 'light'
                 ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
                 : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
             }`}
             title="Download Ministry Activity PDF Report"
           >
-            <FileDown className="w-4 h-4 text-emerald-400" />
-            <span>Export Summary</span>
+            <FileDown className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="truncate">Export Summary</span>
           </button>
         </div>
       </div>

@@ -339,90 +339,90 @@ export const AdminDashboard: React.FC<Props> = ({
         </div>
 
         {/* Action Buttons: Export & Official Print */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
           {onOpenRegisterModal && (
             <button
               onClick={onOpenRegisterModal}
-              className="px-3.5 py-2 text-xs font-semibold text-emerald-200 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+              className="justify-center px-3 py-2 text-xs font-semibold text-emerald-200 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
               title="Register new Admin, Overseer, Governor, or Bacenta Leader"
             >
-              <UserPlus className="w-3.5 h-3.5 text-emerald-400" />
-              <span>+ Register Leadership</span>
+              <UserPlus className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="truncate">+ Register Leader</span>
             </button>
           )}
 
           <button
             onClick={() => setIsObjectiveModalOpen(true)}
-            className="px-3.5 py-2 text-xs font-semibold text-amber-200 bg-amber-950/80 hover:bg-amber-900/80 border border-amber-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+            className="justify-center px-3 py-2 text-xs font-semibold text-amber-200 bg-amber-950/80 hover:bg-amber-900/80 border border-amber-700/80 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
             title="Establish new target objective and alert field leaders via real-time WebSocket"
           >
-            <Target className="w-3.5 h-3.5 text-amber-400" />
-            <span>+ Set Field Objective</span>
+            <Target className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="truncate">Set Objective</span>
           </button>
 
           <button
             onClick={() => setShowAlertConfig(true)}
-            className="px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
+            className="justify-center px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
             title="Configure Alert Rules"
           >
-            <Sliders className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Alert Rules</span>
+            <Sliders className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="truncate">Alert Rules</span>
           </button>
 
           <button
             onClick={handleDownloadCSV}
-            className="px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
+            className="justify-center px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
             title="Export raw tabular data as CSV"
           >
-            <Download className="w-3.5 h-3.5 text-slate-400" />
-            <span>Export CSV</span>
+            <Download className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="truncate">Export CSV</span>
           </button>
 
           <button
             onClick={handleExportPDF}
             disabled={isExportingPDF}
-            className="px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+            className="justify-center px-3 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
             title="Export downloadable PDF report with analytics charts and summarized ministry metrics"
           >
-            <FileDown className="w-3.5 h-3.5" />
-            <span>{isExportingPDF ? 'Generating PDF...' : 'Export Analytics PDF'}</span>
+            <FileDown className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{isExportingPDF ? 'Generating...' : 'Export PDF'}</span>
           </button>
 
           <button
             onClick={onOpenReportPrint}
-            className="px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
+            className="justify-center px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700/60 rounded-xl transition-colors flex items-center gap-1.5"
             title="View printable letterhead preview"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Official Brief</span>
+            <Printer className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="truncate">Official Brief</span>
           </button>
         </div>
       </div>
 
       {/* View Switcher: Metrics & Operations vs Outreach Pictures */}
-      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+      <div className="grid grid-cols-2 sm:flex items-center gap-2 border-b border-slate-800/80 pb-3 w-full">
         <button
           onClick={() => setDashboardTab('metrics')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+          className={`justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
             dashboardTab === 'metrics'
               ? 'bg-emerald-600 text-white shadow-md'
               : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
           }`}
         >
-          <TrendingUp className="w-4 h-4" />
-          <span>Metrics & Analytics</span>
+          <TrendingUp className="w-4 h-4 shrink-0" />
+          <span className="truncate">Metrics & Analytics</span>
         </button>
 
         <button
           onClick={() => setDashboardTab('pictures')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+          className={`justify-center px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
             dashboardTab === 'pictures'
               ? 'bg-emerald-600 text-white shadow-md'
               : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300'
           }`}
         >
-          <Camera className="w-4 h-4 text-emerald-400" />
-          <span>Outreach Pictures ({picturesCount})</span>
+          <Camera className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="truncate">Pictures ({picturesCount})</span>
         </button>
       </div>
 
@@ -917,7 +917,63 @@ export const AdminDashboard: React.FC<Props> = ({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile Council Leaderboard Cards */}
+          <div className="md:hidden space-y-2">
+            {councilLeaderboard.length === 0 ? (
+              <div className="py-6 text-center text-slate-500 text-xs italic">
+                No outreach operations recorded yet.
+              </div>
+            ) : (
+              councilLeaderboard.map((row, index) => (
+                <div
+                  key={row.council}
+                  onClick={() => {
+                    if (onSelectUser) {
+                      const leader = getLeaderForCouncil(row.council);
+                      onSelectUser(leader);
+                    }
+                  }}
+                  className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between cursor-pointer hover:border-emerald-500/50 transition-colors"
+                  title={`Click to open ${row.council} Council Overseer dashboard`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                        index === 0
+                          ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                          : index === 1
+                          ? 'bg-slate-800 text-slate-300'
+                          : 'bg-slate-900 text-slate-400'
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-white">{row.council}</h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {row.count} events · {row.leaders} leaders
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right flex items-center gap-2">
+                    <div>
+                      <span className="text-sm font-black text-emerald-400 block tabular-nums">
+                        {row.souls}
+                      </span>
+                      <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">
+                        Souls
+                      </span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-600" />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">

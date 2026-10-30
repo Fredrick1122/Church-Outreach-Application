@@ -383,7 +383,7 @@ Source: Ephesians Outreach - ephesiansoutreach.org`;
 
         {/* Scripture Selector Row */}
         <div
-          className={`px-5 py-2 border-b flex items-center gap-1.5 overflow-x-auto text-[11px] ${
+          className={`px-4 sm:px-5 py-2.5 border-b flex flex-wrap items-center gap-1.5 text-[11px] ${
             isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/40 border-slate-800'
           }`}
         >
@@ -397,7 +397,7 @@ Source: Ephesians Outreach - ephesiansoutreach.org`;
                   setSelectedScriptureId(item.id);
                   playNotificationChime();
                 }}
-                className={`px-3 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer border ${
+                className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer border text-center ${
                   isSelected
                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs'
                     : isLight

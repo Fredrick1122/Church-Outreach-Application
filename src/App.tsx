@@ -204,7 +204,7 @@ export default function App() {
       />
 
       {/* Main Container Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-5">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 pt-4 pb-24 sm:pb-12">
         {/* Active Leader Session Switcher Banner */}
         {currentUser && currentUser.id !== 'user_admin_1' && currentUser.email?.toLowerCase() !== 'dogbatseyfredrick@gmail.com' && (
           <div className="mb-4 p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
@@ -301,46 +301,50 @@ export default function App() {
             ) : (
               /* ADMIN: FULL ACCESS WITH SWITCHER BETWEEN BACENTA HIERARCHY & ANALYTICS CHARTS */
               <div className="space-y-4">
-                <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">
-                      Admin Command View:
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-900 border border-slate-800 p-2.5 rounded-xl w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                      Admin Command View
                     </span>
-                    <button
-                      onClick={() => setAdminViewMode('overseer')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        adminViewMode === 'overseer'
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-slate-800 text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      Apostolic Bacenta Hierarchy & Database
-                    </button>
-                    <button
-                      onClick={() => setAdminViewMode('analytics')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        adminViewMode === 'analytics'
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-slate-800 text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      Analytics Charts & Thresholds
-                    </button>
+                    <div className="grid grid-cols-2 gap-1.5 w-full sm:w-auto">
+                      <button
+                        onClick={() => setAdminViewMode('overseer')}
+                        className={`px-2.5 py-2 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center cursor-pointer ${
+                          adminViewMode === 'overseer'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'bg-slate-800 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        <span className="hidden sm:inline">Apostolic Bacenta Hierarchy & Database</span>
+                        <span className="sm:hidden">Hierarchy & DB</span>
+                      </button>
+                      <button
+                        onClick={() => setAdminViewMode('analytics')}
+                        className={`px-2.5 py-2 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center cursor-pointer ${
+                          adminViewMode === 'analytics'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'bg-slate-800 text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        <span className="hidden sm:inline">Analytics Charts & Thresholds</span>
+                        <span className="sm:hidden">Analytics & Charts</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="grid grid-cols-2 gap-1.5 w-full sm:w-auto">
                     <button
                       onClick={() => setActiveTab('leader')}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Users className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Registered Leaders ({getUsers().length})</span>
+                      <Users className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span className="truncate">Leaders ({getUsers().length})</span>
                     </button>
                     <button
                       onClick={() => setIsRegisterModalOpen(true)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors cursor-pointer"
+                      className="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700/80 transition-colors flex items-center justify-center cursor-pointer truncate"
                     >
-                      + Register Leadership Account
+                      + Register Leader
                     </button>
                   </div>
                 </div>

@@ -214,12 +214,12 @@ export const RegisteredPeopleView: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={onOpenRegisterModal}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-950/30 transition-all cursor-pointer"
+              className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-950/30 transition-all cursor-pointer"
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4 shrink-0" />
               <span>+ Register New Leader / Admin</span>
             </button>
           </div>
@@ -326,7 +326,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
           {[
             { id: 'all', label: 'All Roles' },
             { id: 'admin', label: 'Admins (L5)' },
@@ -338,7 +338,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
             <button
               key={pill.id}
               onClick={() => setRoleFilter(pill.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center ${
                 roleFilter === pill.id
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : theme === 'light'
@@ -510,7 +510,7 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                 </div>
 
                 {/* Actions: Open Dashboard, Account Info, Adjust, Promote, Demote */}
-                <div className="flex items-center gap-2 self-end lg:self-center shrink-0 flex-wrap">
+                <div className="w-full grid grid-cols-2 sm:flex sm:items-center sm:self-center gap-1.5 pt-3 border-t border-slate-800/80 lg:border-t-0 lg:pt-0 shrink-0">
                   {/* Primary Action: Open Leader Dashboard */}
                   {onSelectUser && (
                     <button
@@ -519,10 +519,10 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                         e.stopPropagation();
                         onSelectUser(u);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all cursor-pointer"
+                      className="col-span-2 sm:col-span-1 justify-center px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all cursor-pointer"
                       title={`Open ${u.name}'s Dashboard`}
                     >
-                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
                       <span>{isCurrentSession ? 'My Dashboard' : 'Open Dashboard'}</span>
                     </button>
                   )}
@@ -534,11 +534,25 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                       e.stopPropagation();
                       setInspectedUser(u);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="justify-center px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     title="View leadership account credentials & details"
                   >
-                    <User className="w-3.5 h-3.5 text-indigo-400" />
+                    <User className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                     <span>Account</span>
+                  </button>
+
+                  {/* Adjust Level / Role Modal Opener */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(u);
+                    }}
+                    className="justify-center px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Change leadership hierarchy level and assigned jurisdiction"
+                  >
+                    <Sliders className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <span>Adjust Level</span>
                   </button>
 
                   {/* Move Up / Promote */}
@@ -554,13 +568,13 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                         ? `Promote to Level ${level + 1} (${getNextHigherRole(u.role)?.toUpperCase()})`
                         : 'Already at highest hierarchy level (Level 5)'
                     }
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`justify-center px-2.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                       canMoveUp
                         ? 'bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-700/80 text-emerald-300 hover:text-white'
                         : 'bg-slate-950 border border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
                     }`}
                   >
-                    <ArrowUp className="w-3.5 h-3.5 text-emerald-400" />
+                    <ArrowUp className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span>Promote (↑)</span>
                   </button>
 
@@ -579,28 +593,14 @@ export const RegisteredPeopleView: React.FC<Props> = ({
                         ? `Move down to Level ${level - 1} (${getNextLowerRole(u.role)?.toUpperCase()})`
                         : 'Already at base leadership tier (Level 1)'
                     }
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`justify-center px-2.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                       canMoveDown
                         ? 'bg-rose-950/70 hover:bg-rose-900 border border-rose-800 text-rose-300 hover:text-white'
                         : 'bg-slate-950 border border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
                     }`}
                   >
-                    <ArrowDown className="w-3.5 h-3.5 text-rose-400" />
+                    <ArrowDown className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                     <span>Demote (↓)</span>
-                  </button>
-
-                  {/* Adjust Level / Role Modal Opener */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditModal(u);
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                    title="Change leadership hierarchy level and assigned jurisdiction"
-                  >
-                    <Sliders className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Adjust Level</span>
                   </button>
                 </div>
               </div>
